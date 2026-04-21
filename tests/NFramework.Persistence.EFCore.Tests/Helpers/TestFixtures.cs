@@ -26,6 +26,69 @@ internal sealed class TestCategory : AuditableEntity<int>
 }
 
 /// <summary>
+/// Soft-deletable parent entity with child collection for cascade tests.
+/// </summary>
+internal sealed class TestOrder : SoftDeletableEntity<Guid>
+{
+    /// <summary>Order number.</summary>
+    public string OrderNumber { get; set; } = string.Empty;
+
+    /// <summary>Child items in this order.</summary>
+    public ICollection<TestOrderItem> Items { get; set; } = [];
+}
+
+/// <summary>
+/// Soft-deletable child entity for cascade tests.
+/// </summary>
+internal sealed class TestOrderItem : SoftDeletableEntity<Guid>
+{
+    /// <summary>FK to parent order.</summary>
+    public Guid OrderId { get; set; }
+
+    /// <summary>Navigation to parent.</summary>
+    public TestOrder? Order { get; set; }
+
+    /// <summary>Item description.</summary>
+    public string Description { get; set; } = string.Empty;
+
+    /// <summary>Sub-items for this item.</summary>
+    public ICollection<TestOrderSubItem> SubItems { get; set; } = [];
+}
+
+/// <summary>
+/// Soft-deletable entity for multi-level cascade tests.
+/// </summary>
+internal sealed class TestOrderSubItem : SoftDeletableEntity<Guid>
+{
+    /// <summary>FK to parent item.</summary>
+    public Guid ItemId { get; set; }
+
+    /// <summary>Navigation to parent.</summary>
+    public TestOrderItem? Item { get; set; }
+
+    /// <summary>Sub-item details.</summary>
+    public string Details { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// Soft-deletable entity for self-referencing hierarchy tests.
+/// </summary>
+internal sealed class TestEmployee : SoftDeletableEntity<Guid>
+{
+    /// <summary>Employee name.</summary>
+    public string Name { get; set; } = string.Empty;
+
+    /// <summary>Manager FK.</summary>
+    public Guid? ManagerId { get; set; }
+
+    /// <summary>Manager navigation.</summary>
+    public TestEmployee? Manager { get; set; }
+
+    /// <summary>Subordinates navigation.</summary>
+    public ICollection<TestEmployee> Subordinates { get; set; } = [];
+}
+
+/// <summary>
 /// InMemory test DbContext.
 /// </summary>
 /// <inheritdoc />
@@ -36,6 +99,18 @@ internal sealed class TestDbContext(DbContextOptions<TestDbContext> options) : D
 
     /// <summary>Categories table.</summary>
     public DbSet<TestCategory> Categories => Set<TestCategory>();
+
+    /// <summary>Orders table.</summary>
+    public DbSet<TestOrder> Orders => Set<TestOrder>();
+
+    /// <summary>Order items table.</summary>
+    public DbSet<TestOrderItem> OrderItems => Set<TestOrderItem>();
+
+    /// <summary>Order sub-items table.</summary>
+    public DbSet<TestOrderSubItem> OrderSubItems => Set<TestOrderSubItem>();
+
+    /// <summary>Employees table.</summary>
+    public DbSet<TestEmployee> Employees => Set<TestEmployee>();
 
     /// <inheritdoc />
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -53,6 +128,33 @@ internal sealed class TestDbContext(DbContextOptions<TestDbContext> options) : D
         {
             _ = entity.HasKey(e => e.Id);
             _ = entity.Property(e => e.RowVersion).IsRequired().HasDefaultValue(Array.Empty<byte>());
+        });
+
+        _ = modelBuilder.Entity<TestOrder>(entity =>
+        {
+            _ = entity.HasKey(e => e.Id);
+            _ = entity.Property(e => e.RowVersion).IsRequired().HasDefaultValue(Array.Empty<byte>());
+            _ = entity.HasMany(e => e.Items).WithOne(e => e.Order).HasForeignKey(e => e.OrderId);
+        });
+
+        _ = modelBuilder.Entity<TestOrderItem>(entity =>
+        {
+            _ = entity.HasKey(e => e.Id);
+            _ = entity.Property(e => e.RowVersion).IsRequired().HasDefaultValue(Array.Empty<byte>());
+            _ = entity.HasMany(e => e.SubItems).WithOne(e => e.Item).HasForeignKey(e => e.ItemId);
+        });
+
+        _ = modelBuilder.Entity<TestOrderSubItem>(entity =>
+        {
+            _ = entity.HasKey(e => e.Id);
+            _ = entity.Property(e => e.RowVersion).IsRequired().HasDefaultValue(Array.Empty<byte>());
+        });
+
+        _ = modelBuilder.Entity<TestEmployee>(entity =>
+        {
+            _ = entity.HasKey(e => e.Id);
+            _ = entity.Property(e => e.RowVersion).IsRequired().HasDefaultValue(Array.Empty<byte>());
+            _ = entity.HasMany(e => e.Subordinates).WithOne(e => e.Manager).HasForeignKey(e => e.ManagerId);
         });
     }
 

@@ -27,9 +27,7 @@ public abstract partial class EFCoreRepository<TEntity, TId, TContext>
 
         TEntity? existing = await DbSet.FindAsync([entity.Id], cancellationToken).ConfigureAwait(false);
         if (existing == null)
-        {
             return await AddAsync(entity, cancellationToken).ConfigureAwait(false);
-        }
 
         Context.Entry(existing).CurrentValues.SetValues(entity);
         _ = await Context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
@@ -54,9 +52,7 @@ public abstract partial class EFCoreRepository<TEntity, TId, TContext>
         ArgumentNullException.ThrowIfNull(entities);
         List<TEntity> list = [.. entities];
         if (list.Count == 0)
-        {
             return 0;
-        }
 
         await DbSet.AddRangeAsync(list, cancellationToken).ConfigureAwait(false);
         return await Context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
@@ -71,9 +67,7 @@ public abstract partial class EFCoreRepository<TEntity, TId, TContext>
         ArgumentNullException.ThrowIfNull(entities);
         List<TEntity> list = [.. entities];
         if (list.Count == 0)
-        {
             return 0;
-        }
 
         DbSet.UpdateRange(list);
         return await Context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
@@ -88,9 +82,7 @@ public abstract partial class EFCoreRepository<TEntity, TId, TContext>
         ArgumentNullException.ThrowIfNull(entities);
         List<TEntity> list = [.. entities];
         if (list.Count == 0)
-        {
             return 0;
-        }
 
         DbSet.RemoveRange(list);
         return await Context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
