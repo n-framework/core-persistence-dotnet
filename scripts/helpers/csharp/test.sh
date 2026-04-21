@@ -13,7 +13,7 @@ acore_log_section "🧪 Running C# tests..."
 for slnx_file in "${REPO_ROOT}"/*.slnx; do
 	[ -f "$slnx_file" ] || continue
 	acore_log_info "Testing: $slnx_file"
-	dotnet test "$slnx_file" --configuration Debug --no-build --verbosity minimal
+	dotnet test "$slnx_file" --configuration Debug --verbosity minimal
 done
 
 acore_log_success "✨ C# tests complete!"

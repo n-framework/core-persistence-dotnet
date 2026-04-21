@@ -23,3 +23,6 @@ for project_format in "${REPO_ROOT}"/src/*/scripts/format.sh; do
 	acore_log_info "▶️ Running format in src/$project_name..."
 	bash "$project_format"
 done
+
+acore_log_divider
+acore_log_success "🎨 All formatting has completed!"
