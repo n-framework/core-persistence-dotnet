@@ -12,7 +12,7 @@ public abstract class AuditableEntity<TId> : Entity<TId>
     /// Timestamp set when the entity is first persisted.
     /// Implementations are responsible for setting this value.
     /// </summary>
-    public DateTime CreatedAt { get; set; }
+    public DateTime CreatedAt { get; init; }
 
     /// <summary>
     /// Timestamp updated on every modification.

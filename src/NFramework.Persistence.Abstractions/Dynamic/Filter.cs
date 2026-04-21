@@ -6,8 +6,16 @@ namespace NFramework.Persistence.Abstractions.Dynamic;
 /// Represents a filter specification for dynamic queries.
 /// Supports both simple field comparisons and nested logical groups.
 /// </summary>
-[System.Diagnostics.CodeAnalysis.SuppressMessage("Roslynator", "RCS1213:Remove unused member declaration.", Justification = "False positive with C# 14 field keyword")]
-[System.Diagnostics.CodeAnalysis.SuppressMessage("Sonar Analyzer", "S2325:Methods and properties that don't access instance data should be 'static'", Justification = "False positive with C# 14 field keyword")]
+[System.Diagnostics.CodeAnalysis.SuppressMessage(
+    "Roslynator",
+    "RCS1213:Remove unused member declaration.",
+    Justification = "False positive with C# 14 field keyword"
+)]
+[System.Diagnostics.CodeAnalysis.SuppressMessage(
+    "Sonar Analyzer",
+    "S2325:Methods and properties that don't access instance data should be 'static'",
+    Justification = "False positive with C# 14 field keyword"
+)]
 public class Filter : IValidatableObject
 {
     /// <summary>Property name on the entity to filter.</summary>
@@ -58,6 +66,21 @@ public class Filter : IValidatableObject
                 "Filter must have either a Field or Logic with nested filters.",
                 [nameof(Field), nameof(Logic)]
             );
+        }
+
+        if (!Logic.HasValue)
+        {
+            if (Operator is FilterOperator.IsNull or FilterOperator.IsNotNull)
+            {
+                if (Value != null)
+                {
+                    yield return new ValidationResult($"Operator {Operator} does not expect a value.", [nameof(Value)]);
+                }
+            }
+            else if (Value == null)
+            {
+                yield return new ValidationResult($"Operator {Operator} requires a comparison value.", [nameof(Value)]);
+            }
         }
 
         if (Logic.HasValue && (Filters == null || Filters.Count == 0))

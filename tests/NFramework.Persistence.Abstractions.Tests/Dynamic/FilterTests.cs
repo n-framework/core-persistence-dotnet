@@ -26,7 +26,12 @@ public class FilterTests
     [InlineData(FilterOperator.In, "In")]
     public void Filter_WithVariousOperators_ShouldStoreCorrectOperator(FilterOperator op, string _)
     {
-        var filter = new Filter { Field = "Name", Operator = op, Value = "test" };
+        var filter = new Filter
+        {
+            Field = "Name",
+            Operator = op,
+            Value = "test",
+        };
         filter.Operator.ShouldBe(op);
     }
 

@@ -23,4 +23,11 @@ public class PagingTests
         paging.Index.ShouldBe(index);
         paging.Size.ShouldBe(size);
     }
+
+    [Fact]
+    public void Paging_InitBypass_ShouldThrow()
+    {
+        Action act = () => _ = new Paging { Index = 0, Size = 0 };
+        act.ShouldThrow<ArgumentException>().Message.ShouldContain("greater than 0");
+    }
 }

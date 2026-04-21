@@ -5,8 +5,16 @@ namespace NFramework.Persistence.Abstractions.Dynamic;
 /// <summary>
 /// Provides extension methods for creating strongly-typed dynamic queries.
 /// </summary>
-[System.Diagnostics.CodeAnalysis.SuppressMessage("Sonar Analyzer", "S2325:Methods and properties that don't access instance data should be 'static'", Justification = "Modern extension block syntax false positive")]
-[System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1708:Identifiers should differ by more than case", Justification = "Experimental extension blocks share the same internal name 'extension'")]
+[System.Diagnostics.CodeAnalysis.SuppressMessage(
+    "Sonar Analyzer",
+    "S2325:Methods and properties that don't access instance data should be 'static'",
+    Justification = "Modern extension block syntax false positive"
+)]
+[System.Diagnostics.CodeAnalysis.SuppressMessage(
+    "Design",
+    "CA1708:Identifiers should differ by more than case",
+    Justification = "Experimental extension blocks share the same internal name 'extension'"
+)]
 public static class DynamicQueryExtensions
 {
     extension(Filter filter)
@@ -55,6 +63,9 @@ public static class DynamicQueryExtensions
 
         return body is MemberExpression memberExpression
             ? memberExpression.Member.Name
-            : throw new ArgumentException("Expression must be a member expression representing a property.", nameof(expression));
+            : throw new ArgumentException(
+                "Expression must be a member expression representing a property.",
+                nameof(expression)
+            );
     }
 }
