@@ -11,7 +11,8 @@ cd "$REPO_ROOT"
 
 acore_log_section "🔍 Linting C# code with dotnet build..."
 
-for slnx_file in $(fd -e slnx . "$REPO_ROOT"); do
+for slnx_file in "${REPO_ROOT}"/*.slnx; do
+	[ -f "$slnx_file" ] || continue
 	acore_log_info "Analyzing: $slnx_file"
 	dotnet restore "$slnx_file"
 
