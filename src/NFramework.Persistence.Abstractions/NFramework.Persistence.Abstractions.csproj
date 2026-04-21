@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net11.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <AnalysisLevel>latest</AnalysisLevel>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PackageId>NFramework.Persistence.Abstractions</PackageId>
+    <Version>1.0.0</Version>
+    <Title>NFramework Persistence Abstractions</Title>
+    <Description>Zero-dependency persistence abstractions for clean architecture applications. Provides entity base classes, repository interfaces, pagination, and dynamic query types.</Description>
+    <PackageTags>persistence;repository-pattern;clean-architecture;abstractions</PackageTags>
+  </PropertyGroup>
+</Project>

@@ -1,8 +1,4 @@
 <Solution>
   <Project Path="src/NFramework.Persistence.Abstractions/NFramework.Persistence.Abstractions.csproj" />
-  <Project Path="src/NFramework.Persistence.EfCore/NFramework.Persistence.EfCore.csproj" />
-  <Project Path="src/NFramework.Persistence.Generators/NFramework.Persistence.Generators.csproj" />
   <Project Path="tests/NFramework.Persistence.Abstractions.Tests/NFramework.Persistence.Abstractions.Tests.csproj" />
-  <Project Path="tests/NFramework.Persistence.EfCore.Tests/NFramework.Persistence.EfCore.Tests.csproj" />
-  <Project Path="tests/NFramework.Persistence.Generators.Tests/NFramework.Persistence.Generators.Tests.csproj" />
 </Solution>
