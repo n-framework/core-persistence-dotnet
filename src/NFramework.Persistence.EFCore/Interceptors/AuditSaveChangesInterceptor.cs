@@ -83,9 +83,16 @@ public sealed class AuditSaveChangesInterceptor : SaveChangesInterceptor
 
     private static void CascadeToNavigations(DbContext context, EntityEntry entry, DateTime now)
     {
-        IEnumerable<INavigationBase> navigations = entry
+        IEnumerable<INavigation> navigations = entry
             .Metadata.GetNavigations()
-            .Where(n => !n.IsOnDependent && !n.TargetEntityType.IsOwned());
+            .Where(n =>
+                !n.IsOnDependent
+                && !n.TargetEntityType.IsOwned()
+                && (
+                    n.ForeignKey.DeleteBehavior == DeleteBehavior.Cascade
+                    || n.ForeignKey.DeleteBehavior == DeleteBehavior.ClientCascade
+                )
+            );
 
         foreach (INavigationBase navigation in navigations)
         {

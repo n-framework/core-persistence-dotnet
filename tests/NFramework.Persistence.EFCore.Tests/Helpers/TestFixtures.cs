@@ -154,7 +154,10 @@ internal sealed class TestDbContext(DbContextOptions<TestDbContext> options) : D
         {
             _ = entity.HasKey(e => e.Id);
             _ = entity.Property(e => e.RowVersion).IsRequired().HasDefaultValue(Array.Empty<byte>());
-            _ = entity.HasMany(e => e.Subordinates).WithOne(e => e.Manager).HasForeignKey(e => e.ManagerId);
+            _ = entity.HasMany(e => e.Subordinates)
+                .WithOne(e => e.Manager)
+                .HasForeignKey(e => e.ManagerId)
+                .OnDelete(DeleteBehavior.ClientCascade);
         });
     }
 
