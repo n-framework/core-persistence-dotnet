@@ -22,9 +22,7 @@ public abstract partial class EFCoreRepository<TEntity, TId, TContext>
     {
         IQueryable<TEntity> query = DbSet;
         if (predicate != null)
-        {
             query = query.Where(predicate);
-        }
 
         return await query.FirstOrDefaultAsync(cancellationToken).ConfigureAwait(false);
     }
@@ -77,14 +75,10 @@ public abstract partial class EFCoreRepository<TEntity, TId, TContext>
         IQueryable<TEntity> query = DbSet;
 
         if (options?.Predicate != null)
-        {
             query = query.Where(options.Predicate);
-        }
 
         if (options?.OrderBy != null)
-        {
             query = options.OrderBy(query);
-        }
 
         return query;
     }

@@ -25,9 +25,7 @@ public abstract class AuditableEntity<TId> : Entity<TId>
         set
         {
             if (value < CreatedAt)
-            {
                 throw new ArgumentException("UpdatedAt cannot be earlier than CreatedAt.");
-            }
 
             field = value;
         }

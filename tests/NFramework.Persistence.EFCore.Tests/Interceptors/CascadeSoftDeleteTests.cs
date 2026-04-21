@@ -209,8 +209,18 @@ public sealed class CascadeSoftDeleteTests
         // Arrange
         using TestDbContext context = TestDbContext.Create();
         TestOrder order = new() { Id = Guid.NewGuid(), OrderNumber = "ORD-007" };
-        TestOrderItem item = new() { Id = Guid.NewGuid(), OrderId = order.Id, Description = "Item X" };
-        TestOrderSubItem subItem = new() { Id = Guid.NewGuid(), ItemId = item.Id, Details = "Sub-item Y" };
+        TestOrderItem item = new()
+        {
+            Id = Guid.NewGuid(),
+            OrderId = order.Id,
+            Description = "Item X",
+        };
+        TestOrderSubItem subItem = new()
+        {
+            Id = Guid.NewGuid(),
+            ItemId = item.Id,
+            Details = "Sub-item Y",
+        };
 
         await context.Orders.AddAsync(order);
         await context.OrderItems.AddAsync(item);
@@ -224,7 +234,9 @@ public sealed class CascadeSoftDeleteTests
         // Assert
         TestOrder? orderDb = await context.Orders.IgnoreQueryFilters().FirstAsync(o => o.Id == order.Id);
         TestOrderItem? itemDb = await context.OrderItems.IgnoreQueryFilters().FirstAsync(i => i.Id == item.Id);
-        TestOrderSubItem? subItemDb = await context.OrderSubItems.IgnoreQueryFilters().FirstAsync(s => s.Id == subItem.Id);
+        TestOrderSubItem? subItemDb = await context
+            .OrderSubItems.IgnoreQueryFilters()
+            .FirstAsync(s => s.Id == subItem.Id);
 
         Assert.True(orderDb.IsDeleted);
         Assert.True(itemDb.IsDeleted);
@@ -239,8 +251,18 @@ public sealed class CascadeSoftDeleteTests
         // Arrange
         using TestDbContext context = TestDbContext.Create();
         TestEmployee ceo = new() { Id = Guid.NewGuid(), Name = "CEO" };
-        TestEmployee vp = new() { Id = Guid.NewGuid(), Name = "VP", ManagerId = ceo.Id };
-        TestEmployee dev = new() { Id = Guid.NewGuid(), Name = "Dev", ManagerId = vp.Id };
+        TestEmployee vp = new()
+        {
+            Id = Guid.NewGuid(),
+            Name = "VP",
+            ManagerId = ceo.Id,
+        };
+        TestEmployee dev = new()
+        {
+            Id = Guid.NewGuid(),
+            Name = "Dev",
+            ManagerId = vp.Id,
+        };
 
         await context.Employees.AddRangeAsync(ceo, vp, dev);
         _ = await context.SaveChangesAsync();
@@ -265,7 +287,12 @@ public sealed class CascadeSoftDeleteTests
         // Arrange
         using TestDbContext context = TestDbContext.Create();
         TestOrder order = new() { Id = Guid.NewGuid(), OrderNumber = "ORD-008" };
-        TestOrderItem item = new() { Id = Guid.NewGuid(), OrderId = order.Id, Description = "Item Z" };
+        TestOrderItem item = new()
+        {
+            Id = Guid.NewGuid(),
+            OrderId = order.Id,
+            Description = "Item Z",
+        };
 
         await context.Orders.AddAsync(order);
         await context.OrderItems.AddAsync(item);

@@ -37,13 +37,9 @@ public abstract class SoftDeletableEntity<TId> : AuditableEntity<TId>
             {
                 field = value;
                 if (field && DeletedAt == null)
-                {
                     DeletedAt = DateTime.UtcNow;
-                }
                 else if (!field)
-                {
                     DeletedAt = null;
-                }
             }
             finally
             {

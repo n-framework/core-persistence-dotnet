@@ -33,9 +33,7 @@ public static class ModelBuilderExtensions
                     .Model.GetEntityTypes()
                     .Where(et => IsSoftDeletableEntity(et.ClrType))
             )
-            {
                 ApplyFilterForType(modelBuilder, entityType.ClrType);
-            }
 
             return modelBuilder;
         }
@@ -51,9 +49,7 @@ public static class ModelBuilderExtensions
                     .Model.GetEntityTypes()
                     .Where(et => IsEntityWithRowVersion(et.ClrType))
             )
-            {
                 _ = modelBuilder.Entity(entityType.ClrType).Property("RowVersion").IsRowVersion();
-            }
 
             return modelBuilder;
         }
@@ -67,9 +63,7 @@ public static class ModelBuilderExtensions
         );
 
         if (isDeletedProperty == null)
-        {
             return;
-        }
 
         MemberExpression propertyAccess = Expression.Property(parameter, isDeletedProperty);
         UnaryExpression notDeleted = Expression.Not(propertyAccess);

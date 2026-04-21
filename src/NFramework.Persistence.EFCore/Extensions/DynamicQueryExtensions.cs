@@ -23,15 +23,11 @@ public static class DynamicQueryExtensions
         public IQueryable<T> ApplyFilters(ICollection<Filter>? filters)
         {
             if (filters == null || filters.Count == 0)
-            {
                 return source;
-            }
 
             IQueryable<T> result = source;
             foreach (Filter filter in filters)
-            {
                 result = result.ApplySingleFilter(filter);
-            }
 
             return result;
         }
@@ -42,9 +38,7 @@ public static class DynamicQueryExtensions
         public IQueryable<T> ApplyOrders(ICollection<Order>? orders)
         {
             if (orders == null || orders.Count == 0)
-            {
                 return source;
-            }
 
             IEnumerable<string> orderClauses = orders.Select(o =>
                 $"{o.Field} {(o.Direction == OrderDirection.Desc ? "desc" : "asc")}"
@@ -58,9 +52,7 @@ public static class DynamicQueryExtensions
         where T : class
     {
         if (filter.Logic.HasValue && filter.Filters is { Count: > 0 })
-        {
             return ApplyLogicGroup(source, filter);
-        }
 
         (string expression, object?[] args) = BuildFilterExpression(filter);
         return source.Where(expression, args);
