@@ -23,6 +23,7 @@ public class CrudTests
             Price = 9.99m,
         };
         TestProduct result = await repo.AddAsync(product);
+        await repo.SaveChangesAsync();
 
         result.CreatedAt.ShouldNotBe(default);
         result.UpdatedAt.ShouldNotBe(default);
@@ -44,6 +45,7 @@ public class CrudTests
                 Price = 19.99m,
             }
         );
+        await repo.SaveChangesAsync();
 
         TestProduct? found = await repo.GetByIdAsync(id);
         found.ShouldNotBeNull();
@@ -74,12 +76,14 @@ public class CrudTests
                 Price = 5.00m,
             }
         );
+        await repo.SaveChangesAsync();
 
         DateTime originalUpdatedAt = product.UpdatedAt;
 
         await Task.Delay(10);
         product.Name = "NewName";
         TestProduct updated = await repo.UpdateAsync(product);
+        await repo.SaveChangesAsync();
 
         updated.UpdatedAt.ShouldBeGreaterThanOrEqualTo(originalUpdatedAt);
         updated.Name.ShouldBe("NewName");
@@ -99,8 +103,10 @@ public class CrudTests
                 Price = 1.00m,
             }
         );
+        await repo.SaveChangesAsync();
 
         await repo.DeleteAsync(product);
+        await repo.SaveChangesAsync();
 
         TestProduct? found = await repo.GetByIdAsync(product.Id);
         found.ShouldNotBeNull();
@@ -130,6 +136,7 @@ public class CrudTests
                 Price = 2.00m,
             }
         );
+        await repo.SaveChangesAsync();
 
         int count = await repo.CountAsync();
         count.ShouldBe(2);
@@ -149,6 +156,7 @@ public class CrudTests
                 Price = 1.00m,
             }
         );
+        await repo.SaveChangesAsync();
 
         bool exists = await repo.AnyAsync(p => p.Name == "Exists");
         exists.ShouldBeTrue();
@@ -186,6 +194,7 @@ public class CrudTests
         ];
 
         int result = await repo.BulkAddAsync(products);
+        await repo.SaveChangesAsync();
         result.ShouldBe(3);
 
         int count = await repo.CountAsync();
@@ -215,6 +224,7 @@ public class CrudTests
             Price = 7.00m,
         };
         TestProduct result = await repo.UpsertAsync(product);
+        await repo.SaveChangesAsync();
 
         result.Name.ShouldBe("Upserted");
         int count = await repo.CountAsync();
@@ -229,6 +239,7 @@ public class CrudTests
 
         TestCategory category = new() { Id = 1, Name = "Electronics" };
         TestCategory result = await repo.AddAsync(category);
+        await repo.SaveChangesAsync();
 
         result.CreatedAt.ShouldNotBe(default);
         result.UpdatedAt.ShouldNotBe(default);

@@ -30,6 +30,7 @@ public class DynamicQueryTests
                 }
             );
         }
+        await repo.SaveChangesAsync();
 
         PaginatedList<TestProduct> page1 = await repo.GetListAsync(
             new PageableQueryOption<TestProduct> { Page = new Paging(0, 10) }
@@ -59,6 +60,7 @@ public class DynamicQueryTests
                 }
             );
         }
+        await repo.SaveChangesAsync();
 
         PaginatedList<TestProduct> lastPage = await repo.GetListAsync(
             new PageableQueryOption<TestProduct> { Page = new Paging(2, 10) }
@@ -99,6 +101,7 @@ public class DynamicQueryTests
                 Price = 30.00m,
             }
         );
+        await repo.SaveChangesAsync();
 
         DynamicQueryOption options = new(
             Filters:
@@ -146,6 +149,7 @@ public class DynamicQueryTests
                 Price = 3.00m,
             }
         );
+        await repo.SaveChangesAsync();
 
         DynamicQueryOption options = new(
             Filters:
@@ -185,6 +189,7 @@ public class DynamicQueryTests
                 Price = 2.00m,
             }
         );
+        await repo.SaveChangesAsync();
 
         DynamicQueryOption options = new();
         IReadOnlyList<TestProduct> results = await repo.GetAllByDynamicAsync(options);
@@ -208,6 +213,7 @@ public class DynamicQueryTests
                 }
             );
         }
+        await repo.SaveChangesAsync();
 
         PageableDynamicQueryOption options = new() { Page = new Paging(0, 5) };
         PaginatedList<TestProduct> result = await repo.GetListByDynamicAsync(options);

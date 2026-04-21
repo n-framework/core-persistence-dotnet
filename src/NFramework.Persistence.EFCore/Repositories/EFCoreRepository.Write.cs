@@ -7,17 +7,15 @@ public abstract partial class EFCoreRepository<TEntity, TId, TContext>
     {
         ArgumentNullException.ThrowIfNull(entity);
         _ = await DbSet.AddAsync(entity, cancellationToken).ConfigureAwait(false);
-        _ = await Context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         return entity;
     }
 
     /// <inheritdoc />
-    public virtual async Task<TEntity> UpdateAsync(TEntity entity, CancellationToken cancellationToken = default)
+    public virtual Task<TEntity> UpdateAsync(TEntity entity, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(entity);
         _ = DbSet.Update(entity);
-        _ = await Context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-        return entity;
+        return Task.FromResult(entity);
     }
 
     /// <inheritdoc />
@@ -30,17 +28,15 @@ public abstract partial class EFCoreRepository<TEntity, TId, TContext>
             return await AddAsync(entity, cancellationToken).ConfigureAwait(false);
 
         Context.Entry(existing).CurrentValues.SetValues(entity);
-        _ = await Context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         return existing;
     }
 
     /// <inheritdoc />
-    public virtual async Task<TEntity> DeleteAsync(TEntity entity, CancellationToken cancellationToken = default)
+    public virtual Task<TEntity> DeleteAsync(TEntity entity, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(entity);
         _ = DbSet.Remove(entity);
-        _ = await Context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-        return entity;
+        return Task.FromResult(entity);
     }
 
     /// <inheritdoc />
@@ -55,11 +51,11 @@ public abstract partial class EFCoreRepository<TEntity, TId, TContext>
             return 0;
 
         await DbSet.AddRangeAsync(list, cancellationToken).ConfigureAwait(false);
-        return await Context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        return list.Count;
     }
 
     /// <inheritdoc />
-    public virtual async Task<int> BulkUpdateAsync(
+    public virtual Task<int> BulkUpdateAsync(
         IEnumerable<TEntity> entities,
         CancellationToken cancellationToken = default
     )
@@ -67,14 +63,14 @@ public abstract partial class EFCoreRepository<TEntity, TId, TContext>
         ArgumentNullException.ThrowIfNull(entities);
         List<TEntity> list = [.. entities];
         if (list.Count == 0)
-            return 0;
+            return Task.FromResult(0);
 
         DbSet.UpdateRange(list);
-        return await Context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        return Task.FromResult(list.Count);
     }
 
     /// <inheritdoc />
-    public virtual async Task<int> BulkDeleteAsync(
+    public virtual Task<int> BulkDeleteAsync(
         IEnumerable<TEntity> entities,
         CancellationToken cancellationToken = default
     )
@@ -82,10 +78,10 @@ public abstract partial class EFCoreRepository<TEntity, TId, TContext>
         ArgumentNullException.ThrowIfNull(entities);
         List<TEntity> list = [.. entities];
         if (list.Count == 0)
-            return 0;
+            return Task.FromResult(0);
 
         DbSet.RemoveRange(list);
-        return await Context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        return Task.FromResult(list.Count);
     }
 
     /// <inheritdoc />
