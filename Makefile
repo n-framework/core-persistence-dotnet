@@ -1,5 +1,5 @@
 SHELL := bash
-.PHONY: build test clean restore format
+.PHONY: setup build format lint test clean
 
 help:
 	@echo "Available commands:"
@@ -13,7 +13,7 @@ help:
 setup:
 	dotnet restore NFramework.Persistence.slnx
 
-build: restore
+build:
 	dotnet build NFramework.Persistence.slnx
 
 format:
