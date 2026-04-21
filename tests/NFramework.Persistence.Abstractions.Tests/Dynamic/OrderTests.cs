@@ -13,11 +13,14 @@ public class OrderTests
         order.Direction.ShouldBe(OrderDirection.Asc);
     }
 
-    [Fact]
-    public void Order_CanSetProperties()
+    [Theory]
+    [InlineData("Name", OrderDirection.Asc)]
+    [InlineData("Age", OrderDirection.Desc)]
+    [InlineData("CreatedAt", OrderDirection.Asc)]
+    public void Order_ShouldInitializeWithCorrectValues(string field, OrderDirection direction)
     {
-        var order = new Order { Field = "Name", Direction = OrderDirection.Desc };
-        order.Field.ShouldBe("Name");
-        order.Direction.ShouldBe(OrderDirection.Desc);
+        var order = new Order { Field = field, Direction = direction };
+        order.Field.ShouldBe(field);
+        order.Direction.ShouldBe(direction);
     }
 }

@@ -15,12 +15,16 @@ public interface IWriteRepository<TEntity, TId>
     Task<TEntity> AddAsync(TEntity entity, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Updates an existing entity. Checks RowVersion for concurrency conflicts.
+    /// Updates an existing entity.
     /// </summary>
+    /// <remarks>
+    /// Implementations must check the <see cref="Entity{TId}.RowVersion"/> for optimistic concurrency.
+    /// If the version in the data store does not match, a concurrency exception should be thrown.
+    /// </remarks>
     Task<TEntity> UpdateAsync(TEntity entity, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Inserts or updates an entity. If entity exists (by ID), updates it; otherwise inserts new.
+    /// Inserts or updates an entity.
     /// </summary>
     Task<TEntity> UpsertAsync(TEntity entity, CancellationToken cancellationToken = default);
 

@@ -7,7 +7,7 @@ namespace NFramework.Persistence.Abstractions.Repositories;
 /// Read-only dynamic query contract for runtime filtering and sorting.
 /// </summary>
 /// <typeparam name="TEntity">Entity type inheriting from <see cref="Entity{TId}"/>.</typeparam>
-/// <typeparam name="TId">Primary key type (must be a value type).</typeparam>
+/// <typeparam name="TId">Primary key type implementing <see cref="IEquatable{TId}"/>.</typeparam>
 public interface IDynamicReadRepository<TEntity, TId>
     where TEntity : Entity<TId>
     where TId : IEquatable<TId>

@@ -27,7 +27,7 @@ public class PageableDynamicQueryOptionTests
                 new Filter
                 {
                     Field = "Name",
-                    Operator = FilterOperator.Eq,
+                    Operator = FilterOperator.Equal,
                     Value = "test",
                 },
             ],

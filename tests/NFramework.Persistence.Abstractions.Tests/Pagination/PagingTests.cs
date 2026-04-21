@@ -8,16 +8,19 @@ public class PagingTests
     [Fact]
     public void Paging_DefaultValues()
     {
-        var paging = new Paging(0, 10);
+        var paging = Paging.Default;
         paging.Index.ShouldBe(0u);
         paging.Size.ShouldBe(10u);
     }
 
-    [Fact]
-    public void Paging_ShouldStoreValues()
+    [Theory]
+    [InlineData(0, 10)]
+    [InlineData(5, 50)]
+    [InlineData(100, 100)] // Boundary check for MaxSize (100 is default max)
+    public void Paging_ShouldInitializeWithCorrectValues(uint index, uint size)
     {
-        var paging = new Paging(5, 50);
-        paging.Index.ShouldBe(5u);
-        paging.Size.ShouldBe(50u);
+        var paging = new Paging(index, size);
+        paging.Index.ShouldBe(index);
+        paging.Size.ShouldBe(size);
     }
 }

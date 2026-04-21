@@ -1,21 +1,47 @@
 namespace NFramework.Persistence.Abstractions.Entities;
 
 /// <summary>
-/// Entity supporting soft delete with both a boolean flag (fast queries)
-/// and a deletion timestamp (audit trail).
-/// Use this for business entities where deleted data should be recoverable.
+/// Domain entity base class for soft-deleted entities.
+/// Automatically manages deletion status and timestamps.
 /// </summary>
 /// <typeparam name="TId">Primary key type.</typeparam>
 public abstract class SoftDeletableEntity<TId> : AuditableEntity<TId>
     where TId : IEquatable<TId>
 {
     /// <summary>
-    /// Boolean flag for fast query filtering. Indexed for performance.
+    /// Boolean flag for fast query filtering.
+    /// Setting this to true without a DeletedAt value will set DeletedAt to UTC now.
+    /// Setting this to false will clear DeletedAt.
     /// </summary>
-    public bool IsDeleted { get; set; }
+    public bool IsDeleted
+    {
+        get;
+        set
+        {
+            field = value;
+            if (field && DeletedAt == null)
+            {
+                DeletedAt = DateTime.UtcNow;
+            }
+            else if (!field)
+            {
+                DeletedAt = null;
+            }
+        }
+    }
 
     /// <summary>
-    /// Timestamp recording when the entity was soft-deleted. Used for audit trails.
+    /// Timestamp recording when the entity was soft-deleted.
+    /// Setting this to a non-null value will set IsDeleted to true.
+    /// Setting this to null will set IsDeleted to false.
     /// </summary>
-    public DateTime? DeletedAt { get; set; }
+    public DateTime? DeletedAt
+    {
+        get;
+        set
+        {
+            field = value;
+            IsDeleted = field != null;
+        }
+    }
 }

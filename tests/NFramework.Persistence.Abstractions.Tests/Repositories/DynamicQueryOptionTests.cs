@@ -24,7 +24,7 @@ public class DynamicQueryOptionTests
                 new Filter
                 {
                     Field = "Name",
-                    Operator = FilterOperator.Eq,
+                    Operator = FilterOperator.Equal,
                     Value = "test",
                 },
             ],

@@ -9,12 +9,27 @@ public abstract class AuditableEntity<TId> : Entity<TId>
     where TId : IEquatable<TId>
 {
     /// <summary>
-    /// Timestamp set automatically when the entity is first persisted.
+    /// Timestamp set when the entity is first persisted.
+    /// Implementations are responsible for setting this value.
     /// </summary>
     public DateTime CreatedAt { get; set; }
 
     /// <summary>
-    /// Timestamp updated automatically on every update.
+    /// Timestamp updated on every modification.
+    /// Implementations are responsible for maintaining this value.
     /// </summary>
-    public DateTime UpdatedAt { get; set; }
+    /// <exception cref="ArgumentException">Thrown if value is earlier than CreatedAt.</exception>
+    public DateTime UpdatedAt
+    {
+        get;
+        set
+        {
+            if (value < CreatedAt)
+            {
+                throw new ArgumentException("UpdatedAt cannot be earlier than CreatedAt.");
+            }
+
+            field = value;
+        }
+    }
 }

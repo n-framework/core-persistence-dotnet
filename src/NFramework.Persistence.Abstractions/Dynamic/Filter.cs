@@ -1,12 +1,29 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace NFramework.Persistence.Abstractions.Dynamic;
 
 /// <summary>
-/// Represents a single filter condition for dynamic queries.
+/// Represents a filter specification for dynamic queries.
+/// Supports both simple field comparisons and nested logical groups.
 /// </summary>
-public class Filter
+[System.Diagnostics.CodeAnalysis.SuppressMessage("Roslynator", "RCS1213:Remove unused member declaration.", Justification = "False positive with C# 14 field keyword")]
+[System.Diagnostics.CodeAnalysis.SuppressMessage("Sonar Analyzer", "S2325:Methods and properties that don't access instance data should be 'static'", Justification = "False positive with C# 14 field keyword")]
+public class Filter : IValidatableObject
 {
     /// <summary>Property name on the entity to filter.</summary>
-    public string Field { get; set; } = string.Empty;
+    public string Field
+    {
+        get;
+        set
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                throw new ArgumentException("Field name cannot be empty.", nameof(value));
+            }
+
+            field = value;
+        }
+    } = string.Empty;
 
     /// <summary>
     /// Comparison operator.
@@ -29,4 +46,45 @@ public class Filter
 
     /// <summary>Nested filters combined using <see cref="Logic"/>.</summary>
     public ICollection<Filter>? Filters { get; init; }
+
+    /// <summary>
+    /// Validates the filter state.
+    /// </summary>
+    public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+    {
+        if (string.IsNullOrWhiteSpace(Field) && !Logic.HasValue)
+        {
+            yield return new ValidationResult(
+                "Filter must have either a Field or Logic with nested filters.",
+                [nameof(Field), nameof(Logic)]
+            );
+        }
+
+        if (Logic.HasValue && (Filters == null || Filters.Count == 0))
+        {
+            yield return new ValidationResult(
+                "Logic operator requires at least one nested filter.",
+                [nameof(Logic), nameof(Filters)]
+            );
+        }
+
+        if (!Logic.HasValue && Filters != null && Filters.Count > 0)
+        {
+            yield return new ValidationResult(
+                "Nested filters require a logic operator.",
+                [nameof(Logic), nameof(Filters)]
+            );
+        }
+
+        if (Filters != null)
+        {
+            foreach (var filter in Filters)
+            {
+                foreach (var result in filter.Validate(validationContext))
+                {
+                    yield return result;
+                }
+            }
+        }
+    }
 }

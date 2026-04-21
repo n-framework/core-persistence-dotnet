@@ -15,10 +15,10 @@ public class EntityTests
     }
 
     [Fact]
-    public void Entity_RowVersion_ShouldBeNull()
+    public void Entity_RowVersion_ShouldBeEmpty()
     {
         var entity = new TestEntity();
-        entity.RowVersion.ShouldBeNull();
+        entity.RowVersion.ShouldBeEmpty();
     }
 
     [Fact]
