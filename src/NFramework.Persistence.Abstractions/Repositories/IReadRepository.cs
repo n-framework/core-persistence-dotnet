@@ -35,7 +35,7 @@ public interface IReadRepository<TEntity, TId>
     /// <summary>
     /// Retrieves a paginated list of entities.
     /// </summary>
-    Task<PaginateResult<TEntity>> GetListAsync(
+    Task<PaginatedList<TEntity>> GetListAsync(
         PageableQueryOption<TEntity>? options = null,
         CancellationToken cancellationToken = default
     );

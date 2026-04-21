@@ -1,4 +1,6 @@
 <Solution>
   <Project Path="src/NFramework.Persistence.Abstractions/NFramework.Persistence.Abstractions.csproj" />
+  <Project Path="src/NFramework.Persistence.EFCore/NFramework.Persistence.EFCore.csproj" />
   <Project Path="tests/NFramework.Persistence.Abstractions.Tests/NFramework.Persistence.Abstractions.Tests.csproj" />
+  <Project Path="tests/NFramework.Persistence.EFCore.Tests/NFramework.Persistence.EFCore.Tests.csproj" />
 </Solution>

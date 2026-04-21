@@ -28,7 +28,7 @@ public interface IDynamicReadRepository<TEntity, TId>
     /// <summary>
     /// Retrieves a paginated list of entities using dynamic query.
     /// </summary>
-    Task<PaginateResult<TEntity>> GetListByDynamicAsync(
+    Task<PaginatedList<TEntity>> GetListByDynamicAsync(
         PageableDynamicQueryOption options,
         CancellationToken cancellationToken = default
     );
