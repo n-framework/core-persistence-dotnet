@@ -39,7 +39,17 @@ public static class DynamicQueryExtensions
                 $"{o.Field} {(o.Direction == OrderDirection.Desc ? "desc" : "asc")}"
             );
 
-            return source.OrderBy(string.Join(", ", orderClauses));
+            try
+            {
+                return source.OrderBy(string.Join(", ", orderClauses));
+            }
+            catch (System.Linq.Dynamic.Core.Exceptions.ParseException ex)
+            {
+                throw new ArgumentException(
+                    $"Invalid order field '{string.Join(", ", orders.Select(o => o.Field))}': {ex.Message}",
+                    ex
+                );
+            }
         }
     }
 
@@ -50,7 +60,14 @@ public static class DynamicQueryExtensions
             return ApplyLogicGroup(source, filter);
 
         (string expression, object?[] args) = BuildFilterExpression(filter);
-        return source.Where(expression, args);
+        try
+        {
+            return source.Where(expression, args);
+        }
+        catch (System.Linq.Dynamic.Core.Exceptions.ParseException ex)
+        {
+            throw new ArgumentException($"Invalid filter field '{filter.Field}': {ex.Message}", ex);
+        }
     }
 
     private static IQueryable<T> ApplyLogicGroup<T>(IQueryable<T> source, Filter group)
@@ -71,15 +88,28 @@ public static class DynamicQueryExtensions
         string connector = group.Logic == FilterLogic.Or ? " || " : " && ";
         string combined = string.Join(connector, parts);
 
-        return source.Where(combined, [.. allArgs]);
+        try
+        {
+            return source.Where(combined, [.. allArgs]);
+        }
+        catch (System.Linq.Dynamic.Core.Exceptions.ParseException ex)
+        {
+            throw new ArgumentException($"Invalid filter group expression: {ex.Message}", ex);
+        }
     }
 
     private static (string Expression, object?[] Args) BuildFilterExpression(Filter filter, int paramOffset = 0)
     {
+        System.ComponentModel.DataAnnotations.Validator.ValidateObject(
+            filter,
+            new System.ComponentModel.DataAnnotations.ValidationContext(filter),
+            true
+        );
+
         string fieldName = filter.Field;
         string paramName = $"@{paramOffset}";
 
-        return filter.Operator switch
+        (string expr, object?[] args) = filter.Operator switch
         {
             FilterOperator.Equal => ($"{fieldName} == {paramName}", [filter.Value]),
             FilterOperator.NotEqual => ($"{fieldName} != {paramName}", [filter.Value]),
@@ -91,18 +121,27 @@ public static class DynamicQueryExtensions
             FilterOperator.IsNotNull => ($"{fieldName} != null", []),
             FilterOperator.StartsWith => filter.CaseSensitive
                 ? ($"{fieldName}.StartsWith({paramName})", [filter.Value])
-                : ($"{fieldName}.ToLower().StartsWith({paramName}.ToString().ToLower())", [filter.Value]),
+                : ($"{fieldName}.ToUpper().StartsWith({paramName})", [filter.Value?.ToString()?.ToUpperInvariant()]),
             FilterOperator.EndsWith => filter.CaseSensitive
                 ? ($"{fieldName}.EndsWith({paramName})", [filter.Value])
-                : ($"{fieldName}.ToLower().EndsWith({paramName}.ToString().ToLower())", [filter.Value]),
+                : ($"{fieldName}.ToUpper().EndsWith({paramName})", [filter.Value?.ToString()?.ToUpperInvariant()]),
             FilterOperator.Contains => filter.CaseSensitive
                 ? ($"{fieldName}.Contains({paramName})", [filter.Value])
-                : ($"{fieldName}.ToLower().Contains({paramName}.ToString().ToLower())", [filter.Value]),
+                : ($"{fieldName}.ToUpper().Contains({paramName})", [filter.Value?.ToString()?.ToUpperInvariant()]),
             FilterOperator.DoesNotContain => filter.CaseSensitive
                 ? ($"!{fieldName}.Contains({paramName})", [filter.Value])
-                : ($"!{fieldName}.ToLower().Contains({paramName}.ToString().ToLower())", [filter.Value]),
-            FilterOperator.In => ($"{paramName}.Contains({fieldName})", [filter.Value]),
-            _ => throw new InvalidOperationException($"Unknown filter operator: {filter.Operator}"),
+                : ($"!{fieldName}.ToUpper().Contains({paramName})", [filter.Value?.ToString()?.ToUpperInvariant()]),
+            FilterOperator.In => ($"{paramName}.Contains({fieldName})", (object?[])[filter.Value]),
+            _ => throw new NotSupportedException(
+                $"The filter operator '{filter.Operator}' is not supported for field '{fieldName}'."
+            ),
         };
+
+        if (filter.IsNot)
+        {
+            expr = $"!({expr})";
+        }
+
+        return (expr, args);
     }
 }
