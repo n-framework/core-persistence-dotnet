@@ -158,10 +158,10 @@ public class CrudTests
         );
         await repo.SaveChangesAsync();
 
-        bool exists = await repo.AnyAsync(p => p.Name == "Exists");
+        bool exists = await repo.AnyAsync(static p => p.Name == "Exists");
         exists.ShouldBeTrue();
 
-        bool notExists = await repo.AnyAsync(p => p.Name == "Nope");
+        bool notExists = await repo.AnyAsync(static p => p.Name == "Nope");
         notExists.ShouldBeFalse();
     }
 
@@ -232,6 +232,100 @@ public class CrudTests
     }
 
     [Fact]
+    public async Task UpsertAsync_ShouldUpdateWhenExisting()
+    {
+        using TestDbContext context = TestDbContext.Create();
+        TestProductRepository repo = new(context);
+
+        TestProduct product = await repo.AddAsync(
+            new TestProduct
+            {
+                Id = Guid.NewGuid(),
+                Name = "UpsertedOriginal",
+                Price = 5.00m,
+            }
+        );
+        await repo.SaveChangesAsync();
+
+        product.Name = "UpsertedUpdated";
+        TestProduct result = await repo.UpsertAsync(product);
+        await repo.SaveChangesAsync();
+
+        result.Name.ShouldBe("UpsertedUpdated");
+        int count = await repo.CountAsync();
+        count.ShouldBe(1);
+    }
+
+    [Fact]
+    public async Task BulkUpdateAsync_ShouldUpdateAll()
+    {
+        using TestDbContext context = TestDbContext.Create();
+        TestProductRepository repo = new(context);
+
+        List<TestProduct> products =
+        [
+            new()
+            {
+                Id = Guid.NewGuid(),
+                Name = "BulkUpd1",
+                Price = 1.00m,
+            },
+            new()
+            {
+                Id = Guid.NewGuid(),
+                Name = "BulkUpd2",
+                Price = 2.00m,
+            },
+        ];
+
+        await repo.BulkAddAsync(products);
+        await repo.SaveChangesAsync();
+
+        products[0].Name = "BulkUpd1_Changed";
+        products[1].Name = "BulkUpd2_Changed";
+
+        int result = await repo.BulkUpdateAsync(products);
+        await repo.SaveChangesAsync();
+        result.ShouldBe(2);
+
+        TestProduct? found = await repo.GetByIdAsync(products[0].Id);
+        found!.Name.ShouldBe("BulkUpd1_Changed");
+    }
+
+    [Fact]
+    public async Task BulkDeleteAsync_ShouldDeleteAll()
+    {
+        using TestDbContext context = TestDbContext.Create();
+        TestProductRepository repo = new(context);
+
+        List<TestProduct> products =
+        [
+            new()
+            {
+                Id = Guid.NewGuid(),
+                Name = "BulkDel1",
+                Price = 1.00m,
+            },
+            new()
+            {
+                Id = Guid.NewGuid(),
+                Name = "BulkDel2",
+                Price = 2.00m,
+            },
+        ];
+
+        await repo.BulkAddAsync(products);
+        await repo.SaveChangesAsync();
+
+        int result = await repo.BulkDeleteAsync(products);
+        await repo.SaveChangesAsync();
+        result.ShouldBe(2);
+
+        int count = await repo.CountAsync();
+        count.ShouldBe(0);
+    }
+
+    [Fact]
     public async Task CategoryAdd_ShouldSetAuditTimestamps()
     {
         using TestDbContext context = TestDbContext.Create();
@@ -243,5 +337,72 @@ public class CrudTests
 
         result.CreatedAt.ShouldNotBe(default);
         result.UpdatedAt.ShouldBeNull();
+    }
+
+    [Fact]
+    public async Task GetAllAsync_WithPredicate_ShouldReturnMatchingItems()
+    {
+        using TestDbContext context = TestDbContext.Create();
+        TestProductRepository repo = new(context);
+
+        await repo.AddAsync(
+            new TestProduct
+            {
+                Id = Guid.NewGuid(),
+                Name = "Apple",
+                Price = 1.00m,
+            }
+        );
+        await repo.AddAsync(
+            new TestProduct
+            {
+                Id = Guid.NewGuid(),
+                Name = "Banana",
+                Price = 2.00m,
+            }
+        );
+        await repo.AddAsync(
+            new TestProduct
+            {
+                Id = Guid.NewGuid(),
+                Name = "Apricot",
+                Price = 3.00m,
+            }
+        );
+        await repo.SaveChangesAsync();
+
+        var results = await repo.GetAllAsync(new(static p => p.Name.StartsWith('A')));
+        results.Count.ShouldBe(2);
+        results.ShouldContain(static p => p.Name == "Apple");
+        results.ShouldContain(static p => p.Name == "Apricot");
+    }
+
+    [Fact]
+    public async Task GetAsync_WithPredicate_ShouldReturnFirstMatchingItem()
+    {
+        using TestDbContext context = TestDbContext.Create();
+        TestProductRepository repo = new(context);
+
+        await repo.AddAsync(
+            new TestProduct
+            {
+                Id = Guid.NewGuid(),
+                Name = "Apple",
+                Price = 1.00m,
+            }
+        );
+        await repo.AddAsync(
+            new TestProduct
+            {
+                Id = Guid.NewGuid(),
+                Name = "Banana",
+                Price = 2.00m,
+            }
+        );
+        await repo.SaveChangesAsync();
+
+        var result = await repo.GetAsync(static p => p.Name == "Banana");
+        result.ShouldNotBeNull();
+        result.Name.ShouldBe("Banana");
     }
 }
