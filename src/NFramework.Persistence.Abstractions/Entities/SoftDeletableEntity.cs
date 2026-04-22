@@ -5,11 +5,10 @@ namespace NFramework.Persistence.Abstractions.Entities;
 /// Automatically manages deletion status and timestamps.
 /// </summary>
 /// <typeparam name="TId">Primary key type.</typeparam>
-public abstract class SoftDeletableEntity<TId> : AuditableEntity<TId>
+public abstract class SoftDeletableEntity<TId> : AuditableEntity<TId>, ISoftDeletableEntity
     where TId : IEquatable<TId>
 {
-    [ThreadStatic]
-    private static bool IsSyncing;
+    private static readonly AsyncLocal<bool> IsSyncing = new();
 
     /// <summary>
     /// Boolean flag for fast query filtering.
@@ -19,20 +18,20 @@ public abstract class SoftDeletableEntity<TId> : AuditableEntity<TId>
     [System.Diagnostics.CodeAnalysis.SuppressMessage(
         "Sonar Analyzer",
         "S2696:Make the enclosing instance property 'static' or remove this set on the 'static' field.",
-        Justification = "ThreadStatic guard for recursion is safe"
+        Justification = "AsyncLocal guard for recursion is safe"
     )]
     public bool IsDeleted
     {
         get;
         set
         {
-            if (IsSyncing)
+            if (IsSyncing.Value)
             {
                 field = value;
                 return;
             }
 
-            IsSyncing = true;
+            IsSyncing.Value = true;
             try
             {
                 field = value;
@@ -43,7 +42,7 @@ public abstract class SoftDeletableEntity<TId> : AuditableEntity<TId>
             }
             finally
             {
-                IsSyncing = false;
+                IsSyncing.Value = false;
             }
         }
     }
@@ -56,20 +55,20 @@ public abstract class SoftDeletableEntity<TId> : AuditableEntity<TId>
     [System.Diagnostics.CodeAnalysis.SuppressMessage(
         "Sonar Analyzer",
         "S2696:Make the enclosing instance property 'static' or remove this set on the 'static' field.",
-        Justification = "ThreadStatic guard for recursion is safe"
+        Justification = "AsyncLocal guard for recursion is safe"
     )]
     public DateTime? DeletedAt
     {
         get;
         set
         {
-            if (IsSyncing)
+            if (IsSyncing.Value)
             {
                 field = value;
                 return;
             }
 
-            IsSyncing = true;
+            IsSyncing.Value = true;
             try
             {
                 field = value;
@@ -77,7 +76,7 @@ public abstract class SoftDeletableEntity<TId> : AuditableEntity<TId>
             }
             finally
             {
-                IsSyncing = false;
+                IsSyncing.Value = false;
             }
         }
     }

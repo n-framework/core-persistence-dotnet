@@ -5,14 +5,14 @@ namespace NFramework.Persistence.Abstractions.Entities;
 /// Use this for entities that need creation and modification audit trails.
 /// </summary>
 /// <typeparam name="TId">Primary key type.</typeparam>
-public abstract class AuditableEntity<TId> : Entity<TId>
+public abstract class AuditableEntity<TId> : Entity<TId>, IAuditableEntity
     where TId : IEquatable<TId>
 {
     /// <summary>
     /// Timestamp set when the entity is first persisted.
     /// Implementations are responsible for setting this value.
     /// </summary>
-    public DateTime CreatedAt { get; init; }
+    public DateTime CreatedAt { get; set; }
 
     /// <summary>
     /// Timestamp updated on every modification.

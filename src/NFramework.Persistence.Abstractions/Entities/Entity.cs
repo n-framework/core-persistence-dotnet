@@ -7,7 +7,16 @@ namespace NFramework.Persistence.Abstractions.Entities;
 public abstract class Entity<TId>
     where TId : IEquatable<TId>
 {
-    public TId Id { get; init; } = default!;
+    public TId Id
+    {
+        get;
+        init
+        {
+            if (EqualityComparer<TId>.Default.Equals(value, default))
+                throw new ArgumentException("Entity ID cannot be the default value.", nameof(value));
+            field = value;
+        }
+    } = default!;
 
     /// <summary>
     /// Optimistic concurrency token. Automatically managed by the database.
