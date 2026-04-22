@@ -27,11 +27,21 @@ public static class PaginationExtensions
             int totalCount = await source.CountAsync(cancellationToken).ConfigureAwait(false);
             int totalPages = totalCount == 0 ? 0 : (int)Math.Ceiling((double)totalCount / paging.Size);
 
-            List<T> items = await source
-                .Skip((int)(paging.Index * paging.Size))
-                .Take((int)paging.Size)
-                .ToListAsync(cancellationToken)
-                .ConfigureAwait(false);
+            long skipItems = (long)paging.Index * paging.Size;
+            if (skipItems > int.MaxValue)
+            {
+                skipItems = int.MaxValue;
+            }
+
+            List<T> items = [];
+            if (totalCount > 0 && skipItems < totalCount)
+            {
+                items = await source
+                    .Skip((int)skipItems)
+                    .Take((int)paging.Size)
+                    .ToListAsync(cancellationToken)
+                    .ConfigureAwait(false);
+            }
 
             PagingMeta meta = new(paging, totalCount, totalPages);
             return new PaginatedList<T>(items, meta);

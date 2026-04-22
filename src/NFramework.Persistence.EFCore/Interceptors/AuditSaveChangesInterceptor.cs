@@ -62,13 +62,16 @@ public sealed class AuditSaveChangesInterceptor : SaveChangesInterceptor
 
     private static void HandleAuditTimestamps(EntityEntry entry, DateTime now)
     {
-        if (entry.State == EntityState.Added)
+        if (entry.Entity is IAuditableEntity auditable)
         {
-            SetPropertyValue(entry, nameof(AuditableEntity<>.CreatedAt), now);
-        }
-        else if (entry.State == EntityState.Modified)
-        {
-            SetPropertyValue(entry, nameof(AuditableEntity<>.UpdatedAt), now);
+            if (entry.State == EntityState.Added)
+            {
+                auditable.CreatedAt = now;
+            }
+            else if (entry.State == EntityState.Modified)
+            {
+                auditable.UpdatedAt = now;
+            }
         }
     }
 
@@ -81,9 +84,16 @@ public sealed class AuditSaveChangesInterceptor : SaveChangesInterceptor
         }
 
         entry.State = EntityState.Modified;
-        SetPropertyValue(entry, nameof(SoftDeletableEntity<>.IsDeleted), true);
-        SetPropertyValue(entry, nameof(SoftDeletableEntity<>.DeletedAt), (DateTime?)now);
-        SetPropertyValue(entry, nameof(AuditableEntity<>.UpdatedAt), now);
+        if (entry.Entity is ISoftDeletableEntity softDeletable)
+        {
+            softDeletable.IsDeleted = true;
+            softDeletable.DeletedAt = now;
+        }
+
+        if (entry.Entity is IAuditableEntity auditable)
+        {
+            auditable.UpdatedAt = now;
+        }
     }
 
     private static IEnumerable<INavigationBase> GetCascadeNavigations(EntityEntry entry)
@@ -137,7 +147,19 @@ public sealed class AuditSaveChangesInterceptor : SaveChangesInterceptor
             {
                 CollectionEntry collectionEntry = entry.Collection(navigation.PropertyInfo!.Name);
                 if (!collectionEntry.IsLoaded)
-                    collectionEntry.Load();
+                {
+                    try
+                    {
+                        collectionEntry.Load();
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new InvalidOperationException(
+                            $"Failed to load collection navigation '{navigation.PropertyInfo!.Name}' for entity '{entry.Metadata.Name}'.",
+                            ex
+                        );
+                    }
+                }
 
                 foreach (EntityEntry childEntry in GetValidChildren(context, collectionEntry.CurrentValue))
                     CascadeSoftDelete(context, childEntry, now);
@@ -146,7 +168,19 @@ public sealed class AuditSaveChangesInterceptor : SaveChangesInterceptor
             {
                 ReferenceEntry referenceEntry = entry.Reference(navigation.PropertyInfo!.Name);
                 if (!referenceEntry.IsLoaded)
-                    referenceEntry.Load();
+                {
+                    try
+                    {
+                        referenceEntry.Load();
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new InvalidOperationException(
+                            $"Failed to load reference navigation '{navigation.PropertyInfo!.Name}' for entity '{entry.Metadata.Name}'.",
+                            ex
+                        );
+                    }
+                }
 
                 if (GetValidChild(context, referenceEntry.CurrentValue) is { } childEntry)
                     CascadeSoftDelete(context, childEntry, now);
@@ -169,7 +203,19 @@ public sealed class AuditSaveChangesInterceptor : SaveChangesInterceptor
             {
                 CollectionEntry collectionEntry = entry.Collection(navigation.PropertyInfo!.Name);
                 if (!collectionEntry.IsLoaded)
-                    await collectionEntry.LoadAsync(cancellationToken).ConfigureAwait(false);
+                {
+                    try
+                    {
+                        await collectionEntry.LoadAsync(cancellationToken).ConfigureAwait(false);
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new InvalidOperationException(
+                            $"Failed to load collection navigation '{navigation.PropertyInfo!.Name}' for entity '{entry.Metadata.Name}'.",
+                            ex
+                        );
+                    }
+                }
 
                 foreach (EntityEntry childEntry in GetValidChildren(context, collectionEntry.CurrentValue))
                     await CascadeSoftDeleteAsync(context, childEntry, now, cancellationToken).ConfigureAwait(false);
@@ -178,7 +224,19 @@ public sealed class AuditSaveChangesInterceptor : SaveChangesInterceptor
             {
                 ReferenceEntry referenceEntry = entry.Reference(navigation.PropertyInfo!.Name);
                 if (!referenceEntry.IsLoaded)
-                    await referenceEntry.LoadAsync(cancellationToken).ConfigureAwait(false);
+                {
+                    try
+                    {
+                        await referenceEntry.LoadAsync(cancellationToken).ConfigureAwait(false);
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new InvalidOperationException(
+                            $"Failed to load reference navigation '{navigation.PropertyInfo!.Name}' for entity '{entry.Metadata.Name}'.",
+                            ex
+                        );
+                    }
+                }
 
                 if (GetValidChild(context, referenceEntry.CurrentValue) is { } childEntry)
                     await CascadeSoftDeleteAsync(context, childEntry, now, cancellationToken).ConfigureAwait(false);
@@ -188,21 +246,11 @@ public sealed class AuditSaveChangesInterceptor : SaveChangesInterceptor
 
     private static bool IsSoftDeletableEntry(EntityEntry entry)
     {
-        return entry.Properties.Any(p => p.Metadata.Name == nameof(SoftDeletableEntity<>.IsDeleted));
+        return entry.Entity is ISoftDeletableEntity;
     }
 
     private static bool IsAlreadySoftDeleted(EntityEntry entry)
     {
-        PropertyEntry? prop = entry.Properties.FirstOrDefault(p =>
-            p.Metadata.Name == nameof(SoftDeletableEntity<>.IsDeleted)
-        );
-        return prop?.CurrentValue is true;
-    }
-
-    private static void SetPropertyValue(EntityEntry entry, string propertyName, object? value)
-    {
-        PropertyEntry? prop = entry.Properties.FirstOrDefault(p => p.Metadata.Name == propertyName);
-        if (prop is { } p2)
-            p2.CurrentValue = value;
+        return entry.Entity is ISoftDeletableEntity softDeletable && softDeletable.IsDeleted;
     }
 }
