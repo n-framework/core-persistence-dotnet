@@ -30,6 +30,7 @@ public class DynamicQueryTests
                 }
             );
         }
+
         await repo.SaveChangesAsync();
 
         PaginatedList<TestProduct> page1 = await repo.GetListAsync(
@@ -60,6 +61,7 @@ public class DynamicQueryTests
                 }
             );
         }
+
         await repo.SaveChangesAsync();
 
         PaginatedList<TestProduct> lastPage = await repo.GetListAsync(
@@ -213,6 +215,7 @@ public class DynamicQueryTests
                 }
             );
         }
+
         await repo.SaveChangesAsync();
 
         PageableDynamicQueryOption options = new() { Page = new Paging(0, 5) };

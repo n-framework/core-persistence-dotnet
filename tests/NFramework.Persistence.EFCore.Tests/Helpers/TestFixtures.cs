@@ -89,6 +89,34 @@ internal sealed class TestEmployee : SoftDeletableEntity<Guid>
 }
 
 /// <summary>
+/// Soft-deletable entity for Many-To-Many tests.
+/// </summary>
+internal sealed class TestUser : SoftDeletableEntity<Guid>
+{
+    public string Name { get; set; } = string.Empty;
+    public ICollection<TestRole> Roles { get; set; } = [];
+}
+
+/// <summary>
+/// Soft-deletable entity for Many-To-Many tests.
+/// </summary>
+internal sealed class TestRole : SoftDeletableEntity<Guid>
+{
+    public string Name { get; set; } = string.Empty;
+    public ICollection<TestUser> Users { get; set; } = [];
+}
+
+/// <summary>
+/// Auditable (but not soft-deletable) child entity.
+/// </summary>
+internal sealed class TestOrderLog : AuditableEntity<Guid>
+{
+    public Guid OrderId { get; set; }
+    public TestOrder? Order { get; set; }
+    public string Message { get; set; } = string.Empty;
+}
+
+/// <summary>
 /// InMemory test DbContext.
 /// </summary>
 /// <inheritdoc />
@@ -112,6 +140,15 @@ internal sealed class TestDbContext(DbContextOptions<TestDbContext> options) : D
     /// <summary>Employees table.</summary>
     public DbSet<TestEmployee> Employees => Set<TestEmployee>();
 
+    /// <summary>Users table.</summary>
+    public DbSet<TestUser> Users => Set<TestUser>();
+
+    /// <summary>Roles table.</summary>
+    public DbSet<TestRole> Roles => Set<TestRole>();
+
+    /// <summary>Order logs table.</summary>
+    public DbSet<TestOrderLog> OrderLogs => Set<TestOrderLog>();
+
     /// <inheritdoc />
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -122,12 +159,14 @@ internal sealed class TestDbContext(DbContextOptions<TestDbContext> options) : D
         {
             _ = entity.HasKey(e => e.Id);
             _ = entity.Property(e => e.RowVersion).IsRequired().HasDefaultValue(Array.Empty<byte>());
+            _ = entity.HasQueryFilter(e => !e.IsDeleted);
         });
 
         _ = modelBuilder.Entity<TestCategory>(entity =>
         {
             _ = entity.HasKey(e => e.Id);
             _ = entity.Property(e => e.RowVersion).IsRequired().HasDefaultValue(Array.Empty<byte>());
+            // Auditable only, no filter
         });
 
         _ = modelBuilder.Entity<TestOrder>(entity =>
@@ -135,6 +174,7 @@ internal sealed class TestDbContext(DbContextOptions<TestDbContext> options) : D
             _ = entity.HasKey(e => e.Id);
             _ = entity.Property(e => e.RowVersion).IsRequired().HasDefaultValue(Array.Empty<byte>());
             _ = entity.HasMany(e => e.Items).WithOne(e => e.Order).HasForeignKey(e => e.OrderId);
+            _ = entity.HasQueryFilter(e => !e.IsDeleted);
         });
 
         _ = modelBuilder.Entity<TestOrderItem>(entity =>
@@ -142,22 +182,49 @@ internal sealed class TestDbContext(DbContextOptions<TestDbContext> options) : D
             _ = entity.HasKey(e => e.Id);
             _ = entity.Property(e => e.RowVersion).IsRequired().HasDefaultValue(Array.Empty<byte>());
             _ = entity.HasMany(e => e.SubItems).WithOne(e => e.Item).HasForeignKey(e => e.ItemId);
+            _ = entity.HasQueryFilter(e => !e.IsDeleted);
         });
 
         _ = modelBuilder.Entity<TestOrderSubItem>(entity =>
         {
             _ = entity.HasKey(e => e.Id);
             _ = entity.Property(e => e.RowVersion).IsRequired().HasDefaultValue(Array.Empty<byte>());
+            _ = entity.HasQueryFilter(e => !e.IsDeleted);
         });
 
         _ = modelBuilder.Entity<TestEmployee>(entity =>
         {
             _ = entity.HasKey(e => e.Id);
             _ = entity.Property(e => e.RowVersion).IsRequired().HasDefaultValue(Array.Empty<byte>());
-            _ = entity.HasMany(e => e.Subordinates)
+            _ = entity
+                .HasMany(e => e.Subordinates)
                 .WithOne(e => e.Manager)
                 .HasForeignKey(e => e.ManagerId)
                 .OnDelete(DeleteBehavior.ClientCascade);
+            _ = entity.HasQueryFilter(e => !e.IsDeleted);
+        });
+
+        _ = modelBuilder.Entity<TestUser>(entity =>
+        {
+            _ = entity.HasKey(e => e.Id);
+            _ = entity.Property(e => e.RowVersion).IsRequired().HasDefaultValue(Array.Empty<byte>());
+            _ = entity.HasMany(e => e.Roles).WithMany(e => e.Users);
+            _ = entity.HasQueryFilter(e => !e.IsDeleted);
+        });
+
+        _ = modelBuilder.Entity<TestRole>(entity =>
+        {
+            _ = entity.HasKey(e => e.Id);
+            _ = entity.Property(e => e.RowVersion).IsRequired().HasDefaultValue(Array.Empty<byte>());
+            _ = entity.HasQueryFilter(e => !e.IsDeleted);
+        });
+
+        _ = modelBuilder.Entity<TestOrderLog>(entity =>
+        {
+            _ = entity.HasKey(e => e.Id);
+            _ = entity.Property(e => e.RowVersion).IsRequired().HasDefaultValue(Array.Empty<byte>());
+            _ = entity.HasOne(e => e.Order).WithMany().HasForeignKey(e => e.OrderId).OnDelete(DeleteBehavior.Cascade);
+            // Auditable only, no filter
         });
     }
 

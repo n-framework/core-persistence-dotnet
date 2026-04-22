@@ -18,36 +18,46 @@ public sealed class AuditSaveChangesInterceptor : SaveChangesInterceptor
     public override InterceptionResult<int> SavingChanges(DbContextEventData eventData, InterceptionResult<int> result)
     {
         ArgumentNullException.ThrowIfNull(eventData);
-        ApplyAuditRules(eventData.Context);
+
+        DateTime now = DateTime.UtcNow;
+        foreach (EntityEntry entry in GetEntriesToSoftDelete(eventData.Context, now))
+            CascadeSoftDelete(eventData.Context!, entry, now);
+
         return base.SavingChanges(eventData, result);
     }
 
     /// <inheritdoc />
-    public override ValueTask<InterceptionResult<int>> SavingChangesAsync(
+    public override async ValueTask<InterceptionResult<int>> SavingChangesAsync(
         DbContextEventData eventData,
         InterceptionResult<int> result,
         CancellationToken cancellationToken = default
     )
     {
         ArgumentNullException.ThrowIfNull(eventData);
-        ApplyAuditRules(eventData.Context);
-        return base.SavingChangesAsync(eventData, result, cancellationToken);
-    }
-
-    private static void ApplyAuditRules(DbContext? context)
-    {
-        if (context == null)
-            return;
 
         DateTime now = DateTime.UtcNow;
+        foreach (EntityEntry entry in GetEntriesToSoftDelete(eventData.Context, now))
+            await CascadeSoftDeleteAsync(eventData.Context!, entry, now, cancellationToken).ConfigureAwait(false);
+
+        return await base.SavingChangesAsync(eventData, result, cancellationToken).ConfigureAwait(false);
+    }
+
+    private static List<EntityEntry> GetEntriesToSoftDelete(DbContext? context, DateTime now)
+    {
+        if (context == null)
+            return [];
+
+        List<EntityEntry> softDeleteEntries = [];
 
         foreach (EntityEntry entry in context.ChangeTracker.Entries().ToList())
         {
             HandleAuditTimestamps(entry, now);
 
             if (entry.State == EntityState.Deleted && IsSoftDeletableEntry(entry))
-                CascadeSoftDelete(context, entry, now);
+                softDeleteEntries.Add(entry);
         }
+
+        return softDeleteEntries;
     }
 
     private static void HandleAuditTimestamps(EntityEntry entry, DateTime now)
@@ -58,13 +68,9 @@ public sealed class AuditSaveChangesInterceptor : SaveChangesInterceptor
             SetPropertyValue(entry, nameof(AuditableEntity<>.UpdatedAt), now);
         }
         else if (entry.State == EntityState.Modified)
+        {
             SetPropertyValue(entry, nameof(AuditableEntity<>.UpdatedAt), now);
-    }
-
-    private static void CascadeSoftDelete(DbContext context, EntityEntry entry, DateTime now)
-    {
-        MarkAsSoftDeleted(entry, now);
-        CascadeToNavigations(context, entry, now);
+        }
     }
 
     private static void MarkAsSoftDeleted(EntityEntry entry, DateTime now)
@@ -81,9 +87,9 @@ public sealed class AuditSaveChangesInterceptor : SaveChangesInterceptor
         SetPropertyValue(entry, nameof(AuditableEntity<>.UpdatedAt), now);
     }
 
-    private static void CascadeToNavigations(DbContext context, EntityEntry entry, DateTime now)
+    private static IEnumerable<INavigationBase> GetCascadeNavigations(EntityEntry entry)
     {
-        IEnumerable<INavigation> navigations = entry
+        IEnumerable<INavigationBase> directNavigations = entry
             .Metadata.GetNavigations()
             .Where(n =>
                 !n.IsOnDependent
@@ -94,31 +100,13 @@ public sealed class AuditSaveChangesInterceptor : SaveChangesInterceptor
                 )
             );
 
-        foreach (INavigationBase navigation in navigations)
-        {
-            if (navigation.PropertyInfo == null)
-                continue;
-
-            if (navigation.IsCollection)
-                CascadeCollection(context, entry, navigation, now);
-            else
-                CascadeReference(context, entry, navigation, now);
-        }
+        return directNavigations.Where(n => n.PropertyInfo != null);
     }
 
-    private static void CascadeCollection(
-        DbContext context,
-        EntityEntry entry,
-        INavigationBase navigation,
-        DateTime now
-    )
+    private static IEnumerable<EntityEntry> GetValidChildren(DbContext context, object? currentValue)
     {
-        CollectionEntry collectionEntry = entry.Collection(navigation.PropertyInfo!.Name);
-        if (!collectionEntry.IsLoaded)
-            collectionEntry.Load();
-
-        if (collectionEntry.CurrentValue is not IEnumerable collection)
-            return;
+        if (currentValue is not IEnumerable collection)
+            yield break;
 
         foreach (object? item in collection)
         {
@@ -127,22 +115,76 @@ public sealed class AuditSaveChangesInterceptor : SaveChangesInterceptor
 
             EntityEntry childEntry = context.Entry(item);
             if (IsSoftDeletableEntry(childEntry) && !IsAlreadySoftDeleted(childEntry))
-                CascadeSoftDelete(context, childEntry, now);
+                yield return childEntry;
         }
     }
 
-    private static void CascadeReference(DbContext context, EntityEntry entry, INavigationBase navigation, DateTime now)
+    private static EntityEntry? GetValidChild(DbContext context, object? currentValue)
     {
-        ReferenceEntry referenceEntry = entry.Reference(navigation.PropertyInfo!.Name);
-        if (!referenceEntry.IsLoaded)
-            referenceEntry.Load();
+        if (currentValue == null)
+            return null;
 
-        if (referenceEntry.CurrentValue == null)
-            return;
+        EntityEntry childEntry = context.Entry(currentValue);
+        return IsSoftDeletableEntry(childEntry) && !IsAlreadySoftDeleted(childEntry) ? childEntry : null;
+    }
 
-        EntityEntry childEntry = context.Entry(referenceEntry.CurrentValue);
-        if (IsSoftDeletableEntry(childEntry) && !IsAlreadySoftDeleted(childEntry))
-            CascadeSoftDelete(context, childEntry, now);
+    private static void CascadeSoftDelete(DbContext context, EntityEntry entry, DateTime now)
+    {
+        MarkAsSoftDeleted(entry, now);
+
+        foreach (INavigationBase navigation in GetCascadeNavigations(entry))
+        {
+            if (navigation.IsCollection)
+            {
+                CollectionEntry collectionEntry = entry.Collection(navigation.PropertyInfo!.Name);
+                if (!collectionEntry.IsLoaded)
+                    collectionEntry.Load();
+
+                foreach (EntityEntry childEntry in GetValidChildren(context, collectionEntry.CurrentValue))
+                    CascadeSoftDelete(context, childEntry, now);
+            }
+            else
+            {
+                ReferenceEntry referenceEntry = entry.Reference(navigation.PropertyInfo!.Name);
+                if (!referenceEntry.IsLoaded)
+                    referenceEntry.Load();
+
+                if (GetValidChild(context, referenceEntry.CurrentValue) is { } childEntry)
+                    CascadeSoftDelete(context, childEntry, now);
+            }
+        }
+    }
+
+    private static async Task CascadeSoftDeleteAsync(
+        DbContext context,
+        EntityEntry entry,
+        DateTime now,
+        CancellationToken cancellationToken
+    )
+    {
+        MarkAsSoftDeleted(entry, now);
+
+        foreach (INavigationBase navigation in GetCascadeNavigations(entry))
+        {
+            if (navigation.IsCollection)
+            {
+                CollectionEntry collectionEntry = entry.Collection(navigation.PropertyInfo!.Name);
+                if (!collectionEntry.IsLoaded)
+                    await collectionEntry.LoadAsync(cancellationToken).ConfigureAwait(false);
+
+                foreach (EntityEntry childEntry in GetValidChildren(context, collectionEntry.CurrentValue))
+                    await CascadeSoftDeleteAsync(context, childEntry, now, cancellationToken).ConfigureAwait(false);
+            }
+            else
+            {
+                ReferenceEntry referenceEntry = entry.Reference(navigation.PropertyInfo!.Name);
+                if (!referenceEntry.IsLoaded)
+                    await referenceEntry.LoadAsync(cancellationToken).ConfigureAwait(false);
+
+                if (GetValidChild(context, referenceEntry.CurrentValue) is { } childEntry)
+                    await CascadeSoftDeleteAsync(context, childEntry, now, cancellationToken).ConfigureAwait(false);
+            }
+        }
     }
 
     private static bool IsSoftDeletableEntry(EntityEntry entry)
@@ -152,14 +194,15 @@ public sealed class AuditSaveChangesInterceptor : SaveChangesInterceptor
 
     private static bool IsAlreadySoftDeleted(EntityEntry entry)
     {
-        return entry.Entity.GetType().GetProperty(nameof(SoftDeletableEntity<>.IsDeleted))?.GetValue(entry.Entity)
-            is true;
+        PropertyEntry? prop = entry.Properties.FirstOrDefault(p =>
+            p.Metadata.Name == nameof(SoftDeletableEntity<>.IsDeleted)
+        );
+        return prop?.CurrentValue is true;
     }
 
     private static void SetPropertyValue(EntityEntry entry, string propertyName, object? value)
     {
         PropertyEntry? prop = entry.Properties.FirstOrDefault(p => p.Metadata.Name == propertyName);
-
         if (prop is { } p2)
             p2.CurrentValue = value;
     }
