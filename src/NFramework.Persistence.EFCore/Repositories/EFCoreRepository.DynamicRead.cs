@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using NFramework.Persistence.Abstractions.Pagination;
 using NFramework.Persistence.Abstractions.Repositories;
+using NFramework.Persistence.EFCore.Constants;
 using NFramework.Persistence.EFCore.Extensions;
 
 namespace NFramework.Persistence.EFCore.Repositories;
@@ -65,6 +66,10 @@ public abstract partial class EFCoreRepository<TEntity, TId, TContext>
     private IQueryable<TEntity> buildDynamicQuery(DynamicQueryOption options)
     {
         IQueryable<TEntity> query = DbSet;
+
+        if (options is IQueryOptionWithSoftDelete { IncludeDeleted: true })
+            query = query.IgnoreQueryFilters(QueryFilters.SoftDeletionArray);
+
         query = query.ApplyFilters(options.Filters);
         query = query.ApplyOrders(options.Orders);
         return query;

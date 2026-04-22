@@ -21,9 +21,6 @@ public sealed class SoftDeleteStateTests
         _ = await context.SaveChangesAsync();
         DateTime? originalUpdatedAt = product.UpdatedAt;
 
-        // Small delay to ensure timestamp difference
-        await Task.Delay(10);
-
         // Act
         product.Name = "New Name";
         _ = await context.SaveChangesAsync();

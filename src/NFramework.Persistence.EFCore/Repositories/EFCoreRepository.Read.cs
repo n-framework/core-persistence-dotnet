@@ -2,6 +2,7 @@ using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using NFramework.Persistence.Abstractions.Pagination;
 using NFramework.Persistence.Abstractions.Repositories;
+using NFramework.Persistence.EFCore.Constants;
 using NFramework.Persistence.EFCore.Extensions;
 
 namespace NFramework.Persistence.EFCore.Repositories;
@@ -73,6 +74,9 @@ public abstract partial class EFCoreRepository<TEntity, TId, TContext>
     private IQueryable<TEntity> buildQuery(QueryOption<TEntity>? options)
     {
         IQueryable<TEntity> query = DbSet;
+
+        if (options is IQueryOptionWithSoftDelete { IncludeDeleted: true })
+            query = query.IgnoreQueryFilters(QueryFilters.SoftDeletionArray);
 
         if (options?.Predicate != null)
             query = query.Where(options.Predicate);
