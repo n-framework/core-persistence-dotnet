@@ -16,6 +16,7 @@
     <PackageReference Include="Shouldly" Version="4.3.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="11.0.0-preview.3.26207.106" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="11.0.0-preview.3.26207.106" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="11.0.0-preview.3.26207.106" />
   </ItemGroup>
 
   <ItemGroup>
