@@ -76,6 +76,13 @@ public class Filter : IValidatableObject
             {
                 yield return new ValidationResult($"Operator {Operator} requires a comparison value.", [nameof(Value)]);
             }
+            else if (Operator == FilterOperator.In && Value is not System.Collections.IEnumerable)
+            {
+                yield return new ValidationResult(
+                    $"Operator {Operator} requires an IEnumerable value.",
+                    [nameof(Value)]
+                );
+            }
         }
 
         if (Logic.HasValue && (Filters == null || Filters.Count == 0))

@@ -9,6 +9,11 @@ namespace NFramework.Persistence.EFCore.Extensions;
 /// </summary>
 public static class DynamicQueryExtensions
 {
+    private static readonly System.Text.RegularExpressions.Regex FieldNameRegex = new(
+        @"^[a-zA-Z_][a-zA-Z0-9_]*(\.[a-zA-Z_][a-zA-Z0-9_]*)*$",
+        System.Text.RegularExpressions.RegexOptions.Compiled
+    );
+
     extension<T>(IQueryable<T> source)
         where T : class
     {
@@ -107,6 +112,8 @@ public static class DynamicQueryExtensions
         );
 
         string fieldName = filter.Field;
+        if (string.IsNullOrWhiteSpace(fieldName) || !FieldNameRegex.IsMatch(fieldName))
+            throw new ArgumentException($"Invalid or unsafe field name: '{fieldName}'");
         string paramName = $"@{paramOffset}";
 
         (string expr, object?[] args) = filter.Operator switch
