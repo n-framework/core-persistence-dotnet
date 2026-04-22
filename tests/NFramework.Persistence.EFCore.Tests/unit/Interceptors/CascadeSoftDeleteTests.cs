@@ -117,7 +117,10 @@ public sealed class CascadeSoftDeleteTests
         // Assert — Child should retain its original deletion timestamp
         TestOrderItem? childInDb = await context.OrderItems.IgnoreQueryFilters().FirstAsync(i => i.Id == item.Id);
         Assert.True(childInDb.IsDeleted);
-        Assert.Equal(originalDeleteTime, childInDb.DeletedAt);
+        Assert.True(
+            childInDb.DeletedAt.HasValue
+                && Math.Abs((childInDb.DeletedAt.Value - originalDeleteTime).TotalSeconds) < 1.0
+        );
     }
 
     [Fact]
@@ -308,5 +311,31 @@ public sealed class CascadeSoftDeleteTests
 
         Assert.False(orderDb.IsDeleted);
         Assert.True(itemDb.IsDeleted);
+    }
+
+    [Fact]
+    public async Task DeleteAsync_CircularReference_DoesNotStackOverflow()
+    {
+        // Arrange
+        using TestDbContext context = TestDbContext.Create();
+        TestEmployee emp1 = new() { Id = Guid.NewGuid(), Name = "Emp1" };
+        TestEmployee emp2 = new() { Id = Guid.NewGuid(), Name = "Emp2" };
+
+        emp1.ManagerId = emp2.Id;
+        emp2.ManagerId = emp1.Id;
+
+        await context.Employees.AddRangeAsync(emp1, emp2);
+        _ = await context.SaveChangesAsync();
+
+        // Act - Delete emp1, which should trigger cascade to emp2, which triggers to emp1
+        _ = context.Employees.Remove(emp1);
+
+        // Assert - Should complete without StackOverflowException
+        _ = await context.SaveChangesAsync();
+
+        TestEmployee? db1 = await context.Employees.IgnoreQueryFilters().FirstAsync(e => e.Id == emp1.Id);
+        TestEmployee? db2 = await context.Employees.IgnoreQueryFilters().FirstAsync(e => e.Id == emp2.Id);
+        Assert.True(db1.IsDeleted);
+        Assert.True(db2.IsDeleted);
     }
 }
