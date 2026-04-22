@@ -12,6 +12,9 @@ internal sealed class TestProduct : SoftDeletableEntity<Guid>
     /// <summary>Product name.</summary>
     public string Name { get; set; } = string.Empty;
 
+    /// <summary>Optional product description.</summary>
+    public string? Description { get; set; }
+
     /// <summary>Product price.</summary>
     public decimal Price { get; set; }
 }

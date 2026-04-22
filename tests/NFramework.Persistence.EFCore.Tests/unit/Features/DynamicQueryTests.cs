@@ -225,4 +225,179 @@ public class DynamicQueryTests
         result.Meta.TotalCount.ShouldBe(15);
         result.Meta.TotalPages.ShouldBe(3);
     }
+
+    [Fact]
+    public async Task GetAllByDynamicAsync_WithIsNullFilter_ShouldReturnMatches()
+    {
+        using TestDbContext context = TestDbContext.Create();
+        TestProductRepository repo = new(context);
+
+        await repo.AddAsync(
+            new TestProduct
+            {
+                Id = Guid.NewGuid(),
+                Name = "With Desc",
+                Description = "Exists",
+                Price = 10.0m,
+            }
+        );
+        await repo.AddAsync(
+            new TestProduct
+            {
+                Id = Guid.NewGuid(),
+                Name = "No Desc",
+                Description = null,
+                Price = 20.0m,
+            }
+        );
+        await repo.SaveChangesAsync();
+
+        DynamicQueryOption options = new(
+            Filters: [new Filter { Field = "Description", Operator = FilterOperator.IsNull }]
+        );
+
+        IReadOnlyList<TestProduct> results = await repo.GetAllByDynamicAsync(options);
+        results.Count.ShouldBe(1);
+        results[0].Price.ShouldBe(20.0m);
+    }
+
+    [Fact]
+    public async Task GetAllByDynamicAsync_WithStartsWithFilter_ShouldReturnMatches()
+    {
+        using TestDbContext context = TestDbContext.Create();
+        TestProductRepository repo = new(context);
+
+        await repo.AddAsync(
+            new TestProduct
+            {
+                Id = Guid.NewGuid(),
+                Name = "Apple",
+                Price = 10.0m,
+            }
+        );
+        await repo.AddAsync(
+            new TestProduct
+            {
+                Id = Guid.NewGuid(),
+                Name = "Banana",
+                Price = 20.0m,
+            }
+        );
+        await repo.AddAsync(
+            new TestProduct
+            {
+                Id = Guid.NewGuid(),
+                Name = "Apricot",
+                Price = 30.0m,
+            }
+        );
+        await repo.SaveChangesAsync();
+
+        DynamicQueryOption options = new(
+            Filters:
+            [
+                new Filter
+                {
+                    Field = "Name",
+                    Operator = FilterOperator.StartsWith,
+                    Value = "Ap",
+                },
+            ]
+        );
+
+        IReadOnlyList<TestProduct> results = await repo.GetAllByDynamicAsync(options);
+        results.Count.ShouldBe(2);
+    }
+
+    private static readonly string[] Filters = ["Apple", "Cherry"];
+
+    [Fact]
+    public async Task GetAllByDynamicAsync_WithInFilter_ShouldReturnMatches()
+    {
+        using TestDbContext context = TestDbContext.Create();
+        TestProductRepository repo = new(context);
+
+        await repo.AddAsync(
+            new TestProduct
+            {
+                Id = Guid.NewGuid(),
+                Name = "Apple",
+                Price = 10.0m,
+            }
+        );
+        await repo.AddAsync(
+            new TestProduct
+            {
+                Id = Guid.NewGuid(),
+                Name = "Banana",
+                Price = 20.0m,
+            }
+        );
+        await repo.AddAsync(
+            new TestProduct
+            {
+                Id = Guid.NewGuid(),
+                Name = "Cherry",
+                Price = 30.0m,
+            }
+        );
+        await repo.SaveChangesAsync();
+
+        DynamicQueryOption options = new(
+            Filters:
+            [
+                new Filter
+                {
+                    Field = "Name",
+                    Operator = FilterOperator.In,
+                    Value = Filters,
+                },
+            ]
+        );
+
+        IReadOnlyList<TestProduct> results = await repo.GetAllByDynamicAsync(options);
+        results.Count.ShouldBe(2);
+    }
+
+    [Fact]
+    public async Task GetAllByDynamicAsync_WithIsNotNegation_ShouldReturnMatches()
+    {
+        using TestDbContext context = TestDbContext.Create();
+        TestProductRepository repo = new(context);
+
+        await repo.AddAsync(
+            new TestProduct
+            {
+                Id = Guid.NewGuid(),
+                Name = "Apple",
+                Price = 10.0m,
+            }
+        );
+        await repo.AddAsync(
+            new TestProduct
+            {
+                Id = Guid.NewGuid(),
+                Name = "Banana",
+                Price = 20.0m,
+            }
+        );
+        await repo.SaveChangesAsync();
+
+        DynamicQueryOption options = new(
+            Filters:
+            [
+                new Filter
+                {
+                    Field = "Name",
+                    Operator = FilterOperator.Equal,
+                    Value = "Apple",
+                    IsNot = true,
+                },
+            ]
+        );
+
+        IReadOnlyList<TestProduct> results = await repo.GetAllByDynamicAsync(options);
+        results.Count.ShouldBe(1);
+        results[0].Name.ShouldBe("Banana");
+    }
 }
