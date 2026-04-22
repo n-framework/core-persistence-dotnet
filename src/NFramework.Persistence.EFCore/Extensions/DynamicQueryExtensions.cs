@@ -7,11 +7,6 @@ namespace NFramework.Persistence.EFCore.Extensions;
 /// Translates abstraction-layer <see cref="Filter"/> and <see cref="Order"/> descriptors
 /// into <see cref="IQueryable{T}"/> operations via System.Linq.Dynamic.Core.
 /// </summary>
-[System.Diagnostics.CodeAnalysis.SuppressMessage(
-    "Sonar Analyzer",
-    "S2325:Methods and properties that don't access instance data should be 'static'",
-    Justification = "C# 14 extension block false positive"
-)]
 public static class DynamicQueryExtensions
 {
     extension<T>(IQueryable<T> source)

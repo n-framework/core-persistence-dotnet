@@ -10,11 +10,6 @@ namespace NFramework.Persistence.Abstractions.Dynamic;
     "S2325:Methods and properties that don't access instance data should be 'static'",
     Justification = "Modern extension block syntax false positive"
 )]
-[System.Diagnostics.CodeAnalysis.SuppressMessage(
-    "Design",
-    "CA1708:Identifiers should differ by more than case",
-    Justification = "Experimental extension blocks share the same internal name 'extension'"
-)]
 public static class DynamicQueryExtensions
 {
     extension(Filter filter)
