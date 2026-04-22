@@ -26,8 +26,7 @@ public class CrudTests
         await repo.SaveChangesAsync();
 
         result.CreatedAt.ShouldNotBe(default);
-        result.UpdatedAt.ShouldNotBe(default);
-        result.CreatedAt.ShouldBe(result.UpdatedAt);
+        result.UpdatedAt.ShouldBeNull();
     }
 
     [Fact]
@@ -78,14 +77,15 @@ public class CrudTests
         );
         await repo.SaveChangesAsync();
 
-        DateTime originalUpdatedAt = product.UpdatedAt;
+        DateTime? originalUpdatedAt = product.UpdatedAt;
 
         await Task.Delay(10);
         product.Name = "NewName";
         TestProduct updated = await repo.UpdateAsync(product);
         await repo.SaveChangesAsync();
 
-        updated.UpdatedAt.ShouldBeGreaterThanOrEqualTo(originalUpdatedAt);
+        updated.UpdatedAt.ShouldNotBeNull();
+        updated.UpdatedAt.Value.ShouldBeGreaterThanOrEqualTo(originalUpdatedAt ?? DateTime.MinValue);
         updated.Name.ShouldBe("NewName");
     }
 
@@ -242,6 +242,6 @@ public class CrudTests
         await repo.SaveChangesAsync();
 
         result.CreatedAt.ShouldNotBe(default);
-        result.UpdatedAt.ShouldNotBe(default);
+        result.UpdatedAt.ShouldBeNull();
     }
 }

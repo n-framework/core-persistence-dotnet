@@ -19,7 +19,7 @@ public sealed class SoftDeleteStateTests
 
         await context.Products.AddAsync(product);
         _ = await context.SaveChangesAsync();
-        DateTime originalUpdatedAt = product.UpdatedAt;
+        DateTime? originalUpdatedAt = product.UpdatedAt;
 
         // Small delay to ensure timestamp difference
         await Task.Delay(10);
@@ -31,7 +31,7 @@ public sealed class SoftDeleteStateTests
         // Assert
         Assert.False(product.IsDeleted);
         Assert.Null(product.DeletedAt);
-        Assert.True(product.UpdatedAt > originalUpdatedAt);
+        Assert.True(product.UpdatedAt > (originalUpdatedAt ?? DateTime.MinValue));
     }
 
     [Fact]
@@ -43,7 +43,7 @@ public sealed class SoftDeleteStateTests
 
         await context.Products.AddAsync(product);
         _ = await context.SaveChangesAsync();
-        DateTime originalUpdatedAt = product.UpdatedAt;
+        DateTime? originalUpdatedAt = product.UpdatedAt;
 
         // Act - No changes, just SaveChanges
         _ = await context.SaveChangesAsync();

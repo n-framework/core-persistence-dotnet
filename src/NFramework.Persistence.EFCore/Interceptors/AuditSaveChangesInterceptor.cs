@@ -65,7 +65,6 @@ public sealed class AuditSaveChangesInterceptor : SaveChangesInterceptor
         if (entry.State == EntityState.Added)
         {
             SetPropertyValue(entry, nameof(AuditableEntity<>.CreatedAt), now);
-            SetPropertyValue(entry, nameof(AuditableEntity<>.UpdatedAt), now);
         }
         else if (entry.State == EntityState.Modified)
         {

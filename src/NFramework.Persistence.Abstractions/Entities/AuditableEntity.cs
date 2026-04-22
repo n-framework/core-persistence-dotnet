@@ -19,12 +19,12 @@ public abstract class AuditableEntity<TId> : Entity<TId>
     /// Implementations are responsible for maintaining this value.
     /// </summary>
     /// <exception cref="ArgumentException">Thrown if value is earlier than CreatedAt.</exception>
-    public DateTime UpdatedAt
+    public DateTime? UpdatedAt
     {
         get;
         set
         {
-            if (value < CreatedAt)
+            if (value != null && value < CreatedAt)
                 throw new ArgumentException("UpdatedAt cannot be earlier than CreatedAt.");
 
             field = value;

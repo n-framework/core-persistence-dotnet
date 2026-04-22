@@ -1,114 +1,70 @@
-using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using NFramework.Persistence.Abstractions.Entities;
+using NFramework.Persistence.EFCore.Constants;
 
 namespace NFramework.Persistence.EFCore.Extensions;
 
 /// <summary>
-/// Provides <see cref="ModelBuilder"/> extensions for applying
-/// NFramework entity conventions to the EF Core model.
+/// Provides <see cref="EntityTypeBuilder{TEntity}"/> extensions for applying
+/// NFramework entity conventions explicitly without reflection magic.
 /// </summary>
-[System.Diagnostics.CodeAnalysis.SuppressMessage(
-    "Sonar Analyzer",
-    "S2325:Methods and properties that don't access instance data should be 'static'",
-    Justification = "C# 14 extension block false positive"
-)]
-[System.Diagnostics.CodeAnalysis.SuppressMessage(
-    "Sonar Analyzer",
-    "S3398:Move this method inside ''.",
-    Justification = "Private static helpers cannot be located inside extension blocks"
-)]
 public static class ModelBuilderExtensions
 {
-    extension(ModelBuilder modelBuilder)
+    extension<TEntity, TId>(EntityTypeBuilder<TEntity> builder)
+        where TEntity : Entity<TId>
+        where TId : IEquatable<TId>
     {
         /// <summary>
-        /// Applies global query filters for all <see cref="SoftDeletableEntity{TId}"/> types
-        /// to exclude soft-deleted entities from normal queries.
+        /// Configures the 'Id' as Key and 'RowVersion' as a concurrency token for a base <see cref="Entity{TId}"/>.
         /// </summary>
-        public ModelBuilder ApplySoftDeleteFilters()
+        public EntityTypeBuilder<TEntity> ConfigureEntity()
         {
-            foreach (
-                Microsoft.EntityFrameworkCore.Metadata.IMutableEntityType entityType in modelBuilder
-                    .Model.GetEntityTypes()
-                    .Where(et => IsSoftDeletableEntity(et.ClrType))
-            )
-                ApplyFilterForType(modelBuilder, entityType.ClrType);
+            ArgumentNullException.ThrowIfNull(builder);
 
-            return modelBuilder;
+            _ = builder.HasKey(e => e.Id);
+            _ = builder.Property(e => e.RowVersion).IsRowVersion();
+
+            return builder;
         }
+    }
 
+    extension<TEntity, TId>(EntityTypeBuilder<TEntity> builder)
+        where TEntity : AuditableEntity<TId>
+        where TId : IEquatable<TId>
+    {
         /// <summary>
-        /// Configures the <see cref="Entity{TId}.RowVersion"/> property
-        /// as a concurrency token for all entity types.
+        /// Configures timestamps for an <see cref="AuditableEntity{TId}"/>.
         /// </summary>
-        public ModelBuilder ApplyConcurrencyTokens()
+        public EntityTypeBuilder<TEntity> ConfigureAuditable()
         {
-            foreach (
-                Microsoft.EntityFrameworkCore.Metadata.IMutableEntityType entityType in modelBuilder
-                    .Model.GetEntityTypes()
-                    .Where(et => IsEntityWithRowVersion(et.ClrType))
-            )
-                _ = modelBuilder.Entity(entityType.ClrType).Property("RowVersion").IsRowVersion();
+            ArgumentNullException.ThrowIfNull(builder);
 
-            return modelBuilder;
+            _ = builder.Property(e => e.CreatedAt).IsRequired();
+            _ = builder.Property(e => e.UpdatedAt);
+
+            return builder;
         }
     }
 
-    private static void ApplyFilterForType(ModelBuilder modelBuilder, Type entityClrType)
+    extension<TEntity, TId>(EntityTypeBuilder<TEntity> builder)
+        where TEntity : SoftDeletableEntity<TId>
+        where TId : IEquatable<TId>
     {
-        ParameterExpression parameter = Expression.Parameter(entityClrType, "e");
-        System.Reflection.PropertyInfo? isDeletedProperty = entityClrType.GetProperty(
-            nameof(SoftDeletableEntity<>.IsDeleted)
-        );
-
-        if (isDeletedProperty == null)
-            return;
-
-        MemberExpression propertyAccess = Expression.Property(parameter, isDeletedProperty);
-        UnaryExpression notDeleted = Expression.Not(propertyAccess);
-        LambdaExpression lambda = Expression.Lambda(notDeleted, parameter);
-
-        _ = modelBuilder.Entity(entityClrType).HasQueryFilter(lambda);
-    }
-
-    private static bool IsSoftDeletableEntity(Type type)
-    {
-        Type? current = type.BaseType;
-        while (current != null)
+        /// <summary>
+        /// Configures a query filter and deletion tracking for a <see cref="SoftDeletableEntity{TId}"/>.
+        /// </summary>
+        public EntityTypeBuilder<TEntity> ConfigureSoftDeletable(string isDeletedColumnName = "IsDeleted")
         {
-            if (
-                current.IsGenericType
-                && current.GetGenericTypeDefinition().FullName
-                    == "NFramework.Persistence.Abstractions.Entities.SoftDeletableEntity`1"
-            )
-            {
-                return true;
-            }
+            ArgumentNullException.ThrowIfNull(builder);
 
-            current = current.BaseType;
+            _ = builder.Property(e => e.IsDeleted).HasColumnName(isDeletedColumnName).IsRequired();
+            _ = builder.Property(e => e.DeletedAt);
+
+            _ = builder.HasIndex(e => e.IsDeleted).HasFilter($"{isDeletedColumnName} = 0");
+            _ = builder.HasQueryFilter(QueryFilters.SoftDeletion, e => !e.IsDeleted);
+
+            return builder;
         }
-
-        return false;
-    }
-
-    private static bool IsEntityWithRowVersion(Type type)
-    {
-        Type? current = type.BaseType;
-        while (current != null)
-        {
-            if (
-                current.IsGenericType
-                && current.GetGenericTypeDefinition().FullName
-                    == "NFramework.Persistence.Abstractions.Entities.Entity`1"
-            )
-            {
-                return true;
-            }
-
-            current = current.BaseType;
-        }
-
-        return false;
     }
 }
