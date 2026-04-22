@@ -79,7 +79,6 @@ public class CrudTests
 
         DateTime? originalUpdatedAt = product.UpdatedAt;
 
-        await Task.Delay(10);
         product.Name = "NewName";
         TestProduct updated = await repo.UpdateAsync(product);
         await repo.SaveChangesAsync();
@@ -193,9 +192,9 @@ public class CrudTests
             },
         ];
 
-        int result = await repo.BulkAddAsync(products);
+        ICollection<TestProduct> result = await repo.BulkAddAsync(products);
         await repo.SaveChangesAsync();
-        result.ShouldBe(3);
+        result.Count.ShouldBe(3);
 
         int count = await repo.CountAsync();
         count.ShouldBe(3);
@@ -207,8 +206,8 @@ public class CrudTests
         using TestDbContext context = TestDbContext.Create();
         TestProductRepository repo = new(context);
 
-        int result = await repo.BulkAddAsync([]);
-        result.ShouldBe(0);
+        ICollection<TestProduct> result = await repo.BulkAddAsync([]);
+        result.Count.ShouldBe(0);
     }
 
     [Fact]
@@ -284,9 +283,9 @@ public class CrudTests
         products[0].Name = "BulkUpd1_Changed";
         products[1].Name = "BulkUpd2_Changed";
 
-        int result = await repo.BulkUpdateAsync(products);
+        ICollection<TestProduct> result = await repo.BulkUpdateAsync(products);
         await repo.SaveChangesAsync();
-        result.ShouldBe(2);
+        result.Count.ShouldBe(2);
 
         TestProduct? found = await repo.GetByIdAsync(products[0].Id);
         found!.Name.ShouldBe("BulkUpd1_Changed");
@@ -317,9 +316,9 @@ public class CrudTests
         await repo.BulkAddAsync(products);
         await repo.SaveChangesAsync();
 
-        int result = await repo.BulkDeleteAsync(products);
+        ICollection<TestProduct> result = await repo.BulkDeleteAsync(products);
         await repo.SaveChangesAsync();
-        result.ShouldBe(2);
+        result.Count.ShouldBe(2);
 
         int count = await repo.CountAsync();
         count.ShouldBe(0);

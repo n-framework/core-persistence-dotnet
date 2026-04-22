@@ -41,6 +41,10 @@ public abstract partial class EFCoreRepository<TEntity, TId, TContext>
         {
             throw new ConcurrencyConflictException(
                 $"A concurrency conflict was detected during upsert for {typeof(TEntity).Name} with ID {entity.Id}.",
+                typeof(TEntity).Name,
+                entity.Id?.ToString(),
+                entity.RowVersion,
+                null,
                 ex
             );
         }
@@ -59,48 +63,36 @@ public abstract partial class EFCoreRepository<TEntity, TId, TContext>
     }
 
     /// <inheritdoc />
-    public virtual async Task<int> BulkAddAsync(
-        IEnumerable<TEntity> entities,
+    public virtual async Task<ICollection<TEntity>> BulkAddAsync(
+        ICollection<TEntity> entities,
         CancellationToken cancellationToken = default
     )
     {
         ArgumentNullException.ThrowIfNull(entities);
-        List<TEntity> list = [.. entities];
-        if (list.Count == 0)
-            return 0;
-
-        await DbSet.AddRangeAsync(list, cancellationToken).ConfigureAwait(false);
-        return list.Count;
+        await DbSet.AddRangeAsync(entities, cancellationToken).ConfigureAwait(false);
+        return entities;
     }
 
     /// <inheritdoc />
-    public virtual Task<int> BulkUpdateAsync(
-        IEnumerable<TEntity> entities,
+    public virtual Task<ICollection<TEntity>> BulkUpdateAsync(
+        ICollection<TEntity> entities,
         CancellationToken cancellationToken = default
     )
     {
         ArgumentNullException.ThrowIfNull(entities);
-        List<TEntity> list = [.. entities];
-        if (list.Count == 0)
-            return Task.FromResult(0);
-
-        DbSet.UpdateRange(list);
-        return Task.FromResult(list.Count);
+        DbSet.UpdateRange(entities);
+        return Task.FromResult(entities);
     }
 
     /// <inheritdoc />
-    public virtual Task<int> BulkDeleteAsync(
-        IEnumerable<TEntity> entities,
+    public virtual Task<ICollection<TEntity>> BulkDeleteAsync(
+        ICollection<TEntity> entities,
         CancellationToken cancellationToken = default
     )
     {
         ArgumentNullException.ThrowIfNull(entities);
-        List<TEntity> list = [.. entities];
-        if (list.Count == 0)
-            return Task.FromResult(0);
-
-        DbSet.RemoveRange(list);
-        return Task.FromResult(list.Count);
+        DbSet.RemoveRange(entities);
+        return Task.FromResult(entities);
     }
 
     /// <inheritdoc />
@@ -115,8 +107,15 @@ public abstract partial class EFCoreRepository<TEntity, TId, TContext>
             var entry = ex.Entries.Count > 0 ? ex.Entries[0] : null;
             string entityType = entry?.Metadata.Name ?? typeof(TEntity).Name;
             string entityId = entry?.Property("Id").CurrentValue?.ToString() ?? "Unknown";
+
+            byte[]? currentVersion = entry?.Property("RowVersion").CurrentValue as byte[];
+
             throw new ConcurrencyConflictException(
                 $"A concurrency conflict was detected for {entityType} with ID {entityId}. The entity was modified by another process.",
+                entityType,
+                entityId,
+                currentVersion,
+                null,
                 ex
             );
         }

@@ -41,18 +41,27 @@ public interface IWriteRepository<TEntity, TId>
     /// <summary>
     /// Inserts multiple entities in batches.
     /// </summary>
-    /// <returns>The number of entities added.</returns>
-    Task<int> BulkAddAsync(IEnumerable<TEntity> entities, CancellationToken cancellationToken = default);
+    /// <returns>The entities added.</returns>
+    Task<ICollection<TEntity>> BulkAddAsync(
+        ICollection<TEntity> entities,
+        CancellationToken cancellationToken = default
+    );
 
     /// <summary>
     /// Updates multiple entities in batches. Checks RowVersion for each.
     /// </summary>
-    /// <returns>The number of entities updated.</returns>
-    Task<int> BulkUpdateAsync(IEnumerable<TEntity> entities, CancellationToken cancellationToken = default);
+    /// <returns>The entities updated.</returns>
+    Task<ICollection<TEntity>> BulkUpdateAsync(
+        ICollection<TEntity> entities,
+        CancellationToken cancellationToken = default
+    );
 
     /// <summary>
     /// Deletes multiple entities in batches. Respects soft/hard delete per entity type.
     /// </summary>
-    /// <returns>The number of entities deleted.</returns>
-    Task<int> BulkDeleteAsync(IEnumerable<TEntity> entities, CancellationToken cancellationToken = default);
+    /// <returns>The entities deleted.</returns>
+    Task<ICollection<TEntity>> BulkDeleteAsync(
+        ICollection<TEntity> entities,
+        CancellationToken cancellationToken = default
+    );
 }
