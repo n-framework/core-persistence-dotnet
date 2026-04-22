@@ -1,3 +1,6 @@
+using Microsoft.EntityFrameworkCore;
+using NFramework.Persistence.Abstractions.Exceptions;
+
 namespace NFramework.Persistence.EFCore.Repositories;
 
 public abstract partial class EFCoreRepository<TEntity, TId, TContext>
@@ -27,7 +30,9 @@ public abstract partial class EFCoreRepository<TEntity, TId, TContext>
         if (existing == null)
             return await AddAsync(entity, cancellationToken).ConfigureAwait(false);
 
+        byte[] callerRowVersion = entity.RowVersion;
         Context.Entry(existing).CurrentValues.SetValues(entity);
+        Context.Entry(existing).Property(e => e.RowVersion).OriginalValue = callerRowVersion;
         return existing;
     }
 
@@ -87,6 +92,16 @@ public abstract partial class EFCoreRepository<TEntity, TId, TContext>
     /// <inheritdoc />
     public virtual async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
-        return await Context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            return await Context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        }
+        catch (DbUpdateConcurrencyException ex)
+        {
+            throw new ConcurrencyConflictException(
+                "A concurrency conflict was detected. The entity was modified by another process.",
+                ex
+            );
+        }
     }
 }
