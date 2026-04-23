@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace NFramework.Persistence.Abstractions.Entities;
 
 /// <summary>
@@ -5,7 +7,7 @@ namespace NFramework.Persistence.Abstractions.Entities;
 /// Use this for entities that need creation and modification audit trails.
 /// </summary>
 /// <typeparam name="TId">Primary key type.</typeparam>
-public abstract class AuditableEntity<TId> : Entity<TId>, IAuditableEntity
+public abstract class AuditableEntity<TId> : Entity<TId>, IAuditableEntity, IValidatableObject
     where TId : IEquatable<TId>
 {
     /// <summary>
@@ -18,16 +20,15 @@ public abstract class AuditableEntity<TId> : Entity<TId>, IAuditableEntity
     /// Timestamp updated on every modification.
     /// Implementations are responsible for maintaining this value.
     /// </summary>
-    /// <exception cref="ArgumentException">Thrown if value is earlier than CreatedAt.</exception>
-    public DateTime? UpdatedAt
-    {
-        get;
-        set
-        {
-            if (value != null && value < CreatedAt)
-                throw new ArgumentException("UpdatedAt cannot be earlier than CreatedAt.");
+    public DateTime? UpdatedAt { get; set; }
 
-            field = value;
-        }
+    /// <inheritdoc />
+    public virtual IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+    {
+        if (CreatedAt == default)
+            yield return new ValidationResult("CreatedAt must be a valid timestamp.", [nameof(CreatedAt)]);
+
+        if (UpdatedAt.HasValue && UpdatedAt.Value < CreatedAt)
+            yield return new ValidationResult("UpdatedAt cannot be earlier than CreatedAt.", [nameof(UpdatedAt)]);
     }
 }

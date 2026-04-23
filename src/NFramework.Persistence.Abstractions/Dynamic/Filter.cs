@@ -105,7 +105,8 @@ public class Filter : IValidatableObject
         {
             foreach (var filter in Filters)
             {
-                foreach (var result in filter.Validate(validationContext))
+                ValidationContext childContext = new(filter);
+                foreach (var result in filter.Validate(childContext))
                 {
                     yield return result;
                 }

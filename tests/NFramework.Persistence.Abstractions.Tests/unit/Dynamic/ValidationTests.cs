@@ -42,12 +42,15 @@ public class ValidationTests
     }
 
     [Fact]
-    public void AuditableEntity_UpdatedAtEarlierThanCreatedAt_ShouldThrow()
+    public void AuditableEntity_UpdatedAtEarlierThanCreatedAt_ShouldFailValidation()
     {
         var entity = new TestAuditableEntity { CreatedAt = DateTime.UtcNow };
-        Should
-            .Throw<ArgumentException>(() => entity.UpdatedAt = entity.CreatedAt.AddSeconds(-1))
-            .Message.ShouldContain("UpdatedAt cannot be earlier than CreatedAt");
+        entity.UpdatedAt = entity.CreatedAt.AddSeconds(-1);
+
+        var results = entity.Validate(new System.ComponentModel.DataAnnotations.ValidationContext(entity)).ToList();
+        results.ShouldContain(r =>
+            r.ErrorMessage != null && r.ErrorMessage.Contains("UpdatedAt cannot be earlier than CreatedAt")
+        );
     }
 
     [Fact]
