@@ -133,7 +133,17 @@ public sealed class SoftDeletionInterceptor : SaveChangesInterceptor
                 CollectionEntry collectionEntry = entry.Collection(navigation.PropertyInfo!.Name);
                 if (!collectionEntry.IsLoaded)
                 {
-                    collectionEntry.Load();
+                    try
+                    {
+                        collectionEntry.Load();
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new InvalidOperationException(
+                            $"Failed to load navigation collection '{navigation.Name}' on entity '{entry.Entity.GetType().Name}' during cascade soft-delete traversal.",
+                            ex
+                        );
+                    }
                 }
 
                 foreach (EntityEntry childEntry in GetValidChildren(context, collectionEntry.CurrentValue))
@@ -144,7 +154,17 @@ public sealed class SoftDeletionInterceptor : SaveChangesInterceptor
                 ReferenceEntry referenceEntry = entry.Reference(navigation.PropertyInfo!.Name);
                 if (!referenceEntry.IsLoaded)
                 {
-                    referenceEntry.Load();
+                    try
+                    {
+                        referenceEntry.Load();
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new InvalidOperationException(
+                            $"Failed to load navigation reference '{navigation.Name}' on entity '{entry.Entity.GetType().Name}' during cascade soft-delete traversal.",
+                            ex
+                        );
+                    }
                 }
 
                 if (GetValidChild(context, referenceEntry.CurrentValue) is { } childEntry)
@@ -174,7 +194,17 @@ public sealed class SoftDeletionInterceptor : SaveChangesInterceptor
                 CollectionEntry collectionEntry = entry.Collection(navigation.PropertyInfo!.Name);
                 if (!collectionEntry.IsLoaded)
                 {
-                    await collectionEntry.LoadAsync(cancellationToken).ConfigureAwait(false);
+                    try
+                    {
+                        await collectionEntry.LoadAsync(cancellationToken).ConfigureAwait(false);
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new InvalidOperationException(
+                            $"Failed to load navigation collection '{navigation.Name}' on entity '{entry.Entity.GetType().Name}' during cascade soft-delete traversal.",
+                            ex
+                        );
+                    }
                 }
 
                 foreach (EntityEntry childEntry in GetValidChildren(context, collectionEntry.CurrentValue))
@@ -186,7 +216,17 @@ public sealed class SoftDeletionInterceptor : SaveChangesInterceptor
                 ReferenceEntry referenceEntry = entry.Reference(navigation.PropertyInfo!.Name);
                 if (!referenceEntry.IsLoaded)
                 {
-                    await referenceEntry.LoadAsync(cancellationToken).ConfigureAwait(false);
+                    try
+                    {
+                        await referenceEntry.LoadAsync(cancellationToken).ConfigureAwait(false);
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new InvalidOperationException(
+                            $"Failed to load navigation reference '{navigation.Name}' on entity '{entry.Entity.GetType().Name}' during cascade soft-delete traversal.",
+                            ex
+                        );
+                    }
                 }
 
                 if (GetValidChild(context, referenceEntry.CurrentValue) is { } childEntry)
