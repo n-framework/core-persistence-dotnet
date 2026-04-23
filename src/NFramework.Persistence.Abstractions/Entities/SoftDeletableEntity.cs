@@ -8,30 +8,25 @@ namespace NFramework.Persistence.Abstractions.Entities;
 public abstract class SoftDeletableEntity<TId> : AuditableEntity<TId>, ISoftDeletableEntity
     where TId : IEquatable<TId>
 {
-    private static readonly AsyncLocal<bool> IsSyncing = new();
+    private bool _isSyncing;
 
     /// <summary>
     /// Boolean flag for fast query filtering.
     /// Setting this to true without a DeletedAt value will set DeletedAt to UTC now.
     /// Setting this to false will clear DeletedAt.
     /// </summary>
-    [System.Diagnostics.CodeAnalysis.SuppressMessage(
-        "Sonar Analyzer",
-        "S2696:Make the enclosing instance property 'static' or remove this set on the 'static' field.",
-        Justification = "AsyncLocal guard for recursion is safe"
-    )]
     public bool IsDeleted
     {
         get;
         set
         {
-            if (IsSyncing.Value)
+            if (_isSyncing)
             {
                 field = value;
                 return;
             }
 
-            IsSyncing.Value = true;
+            _isSyncing = true;
             try
             {
                 field = value;
@@ -42,7 +37,7 @@ public abstract class SoftDeletableEntity<TId> : AuditableEntity<TId>, ISoftDele
             }
             finally
             {
-                IsSyncing.Value = false;
+                _isSyncing = false;
             }
         }
     }
@@ -52,23 +47,18 @@ public abstract class SoftDeletableEntity<TId> : AuditableEntity<TId>, ISoftDele
     /// Setting this to a non-null value will set IsDeleted to true.
     /// Setting this to null will set IsDeleted to false.
     /// </summary>
-    [System.Diagnostics.CodeAnalysis.SuppressMessage(
-        "Sonar Analyzer",
-        "S2696:Make the enclosing instance property 'static' or remove this set on the 'static' field.",
-        Justification = "AsyncLocal guard for recursion is safe"
-    )]
     public DateTime? DeletedAt
     {
         get;
         set
         {
-            if (IsSyncing.Value)
+            if (_isSyncing)
             {
                 field = value;
                 return;
             }
 
-            IsSyncing.Value = true;
+            _isSyncing = true;
             try
             {
                 field = value;
@@ -76,7 +66,7 @@ public abstract class SoftDeletableEntity<TId> : AuditableEntity<TId>, ISoftDele
             }
             finally
             {
-                IsSyncing.Value = false;
+                _isSyncing = false;
             }
         }
     }
