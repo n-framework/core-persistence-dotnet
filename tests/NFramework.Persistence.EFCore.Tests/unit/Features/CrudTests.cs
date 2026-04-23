@@ -404,4 +404,42 @@ public class CrudTests
         result.ShouldNotBeNull();
         result.Name.ShouldBe("Banana");
     }
+
+    [Fact]
+    public async Task UpdateAsync_WithAlreadyTrackedEntity_ShouldNotDuplicateWork()
+    {
+        using TestDbContext context = TestDbContext.Create();
+        TestProductRepository repo = new(context);
+
+        var id = Guid.NewGuid();
+        var product = new TestProduct
+        {
+            Id = id,
+            Name = "Tracked Item",
+            Price = 1.00m,
+        };
+
+        await repo.AddAsync(product);
+        await repo.SaveChangesAsync();
+
+        // 1. Fetch the entity (now it's tracked by ChangeTracker)
+        var trackedEntity = await repo.GetByIdAsync(id);
+        trackedEntity.ShouldNotBeNull();
+
+        // 2. Modify properties
+        trackedEntity.Price = 50.00m;
+
+        // 3. Update the identical tracked entity
+        // With our ReferenceEquals optimization, this should return immediately without doing SetValues
+        var result = await repo.UpdateAsync(trackedEntity);
+
+        // 4. Save Changes
+        await repo.SaveChangesAsync();
+
+        // 5. Verify the save went through
+        var verify = await repo.GetByIdAsync(id);
+        verify.ShouldNotBeNull();
+        verify.Price.ShouldBe(50.00m);
+        ReferenceEquals(result, trackedEntity).ShouldBeTrue();
+    }
 }

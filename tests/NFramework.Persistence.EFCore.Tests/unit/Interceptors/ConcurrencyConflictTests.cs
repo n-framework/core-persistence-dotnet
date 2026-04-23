@@ -141,4 +141,113 @@ public class ConcurrencyConflictTests
         ex.InnerException.ShouldNotBeNull();
         ex.InnerException.ShouldBeOfType<DbUpdateConcurrencyException>();
     }
+
+    [Fact]
+    public async Task BulkUpdateAsync_WithStaleRowVersion_ShouldThrowConcurrencyConflictException()
+    {
+        using SqliteTestDbContext context = SqliteTestDbContext.Create();
+        SqliteTestProductRepository repo = new(context);
+
+        List<TestProduct> products =
+        [
+            new()
+            {
+                Id = Guid.NewGuid(),
+                Name = "Bulk1",
+                Price = 10.00m,
+            },
+            new()
+            {
+                Id = Guid.NewGuid(),
+                Name = "Bulk2",
+                Price = 20.00m,
+            },
+        ];
+
+        await repo.BulkAddAsync(products);
+        await repo.SaveChangesAsync();
+
+        // Simulate concurrent modification on the first entity
+        await context.Database.ExecuteSqlRawAsync(
+            "UPDATE Products SET Name = 'ConcurrentUpdate', RowVersion = X'0102' WHERE Id = {0}",
+            products[0].Id
+        );
+
+        products[0].Name = "MyBulkUpdate1";
+        products[1].Name = "MyBulkUpdate2";
+
+        await Should.ThrowAsync<ConcurrencyConflictException>(async () =>
+        {
+            await repo.BulkUpdateAsync(products);
+            await repo.SaveChangesAsync();
+        });
+    }
+
+    [Fact]
+    public async Task DeleteAsync_WithStaleRowVersion_ShouldThrowConcurrencyConflictException()
+    {
+        using SqliteTestDbContext context = SqliteTestDbContext.Create();
+        SqliteTestProductRepository repo = new(context);
+
+        TestProduct product = new()
+        {
+            Id = Guid.NewGuid(),
+            Name = "Original",
+            Price = 10.00m,
+        };
+
+        await repo.AddAsync(product);
+        await repo.SaveChangesAsync();
+
+        // Simulate concurrent modification
+        await context.Database.ExecuteSqlRawAsync(
+            "UPDATE Products SET Name = 'ConcurrentUpdate', RowVersion = X'0102' WHERE Id = {0}",
+            product.Id
+        );
+
+        // Delete with stale entity
+        await Should.ThrowAsync<ConcurrencyConflictException>(async () =>
+        {
+            await repo.DeleteAsync(product);
+            await repo.SaveChangesAsync();
+        });
+    }
+
+    [Fact]
+    public async Task BulkDeleteAsync_WithStaleRowVersion_ShouldThrowConcurrencyConflictException()
+    {
+        using SqliteTestDbContext context = SqliteTestDbContext.Create();
+        SqliteTestProductRepository repo = new(context);
+
+        List<TestProduct> products =
+        [
+            new()
+            {
+                Id = Guid.NewGuid(),
+                Name = "Bulk1",
+                Price = 10.00m,
+            },
+            new()
+            {
+                Id = Guid.NewGuid(),
+                Name = "Bulk2",
+                Price = 20.00m,
+            },
+        ];
+
+        await repo.BulkAddAsync(products);
+        await repo.SaveChangesAsync();
+
+        // Simulate concurrent modification on the first entity
+        await context.Database.ExecuteSqlRawAsync(
+            "UPDATE Products SET Name = 'ConcurrentUpdate', RowVersion = X'0102' WHERE Id = {0}",
+            products[0].Id
+        );
+
+        await Should.ThrowAsync<ConcurrencyConflictException>(async () =>
+        {
+            await repo.BulkDeleteAsync(products);
+            await repo.SaveChangesAsync();
+        });
+    }
 }

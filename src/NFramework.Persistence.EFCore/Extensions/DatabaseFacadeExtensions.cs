@@ -21,20 +21,10 @@ public static class DatabaseFacadeExtensions
             ArgumentNullException.ThrowIfNull(databaseFacade);
             if (databaseFacade.IsRelational())
             {
-                try
-                {
-                    if (databaseFacade.GetPendingMigrations().Any())
-                        databaseFacade.Migrate();
-                    else
-                        _ = databaseFacade.EnsureCreated();
-                }
-                catch (Exception ex)
-                {
-                    throw new InvalidOperationException(
-                        "Failed to apply migrations or ensure the database is created.",
-                        ex
-                    );
-                }
+                if (databaseFacade.GetPendingMigrations().Any())
+                    databaseFacade.Migrate();
+                else
+                    _ = databaseFacade.EnsureCreated();
             }
             else
             {

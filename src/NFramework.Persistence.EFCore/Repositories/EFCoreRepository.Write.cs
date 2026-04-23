@@ -14,11 +14,22 @@ public abstract partial class EFCoreRepository<TEntity, TId, TContext>
     }
 
     /// <inheritdoc />
-    public virtual Task<TEntity> UpdateAsync(TEntity entity, CancellationToken cancellationToken = default)
+    public virtual async Task<TEntity> UpdateAsync(TEntity entity, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(entity);
-        _ = DbSet.Update(entity);
-        return Task.FromResult(entity);
+
+        TEntity? existing =
+            await DbSet.FindAsync([entity.Id], cancellationToken).ConfigureAwait(false)
+            ?? throw new InvalidOperationException($"Entity {typeof(TEntity).Name} with ID {entity.Id} not found.");
+
+        if (!ReferenceEquals(existing, entity))
+        {
+            byte[] callerRowVersion = entity.RowVersion;
+            Context.Entry(existing).CurrentValues.SetValues(entity);
+            Context.Entry(existing).Property(e => e.RowVersion).OriginalValue = callerRowVersion;
+        }
+
+        return existing;
     }
 
     /// <inheritdoc />
@@ -26,28 +37,18 @@ public abstract partial class EFCoreRepository<TEntity, TId, TContext>
     {
         ArgumentNullException.ThrowIfNull(entity);
 
-        try
-        {
-            TEntity? existing = await DbSet.FindAsync([entity.Id], cancellationToken).ConfigureAwait(false);
-            if (existing == null)
-                return await AddAsync(entity, cancellationToken).ConfigureAwait(false);
+        TEntity? existing = await DbSet.FindAsync([entity.Id], cancellationToken).ConfigureAwait(false);
+        if (existing == null)
+            return await AddAsync(entity, cancellationToken).ConfigureAwait(false);
 
+        if (!ReferenceEquals(existing, entity))
+        {
             byte[] callerRowVersion = entity.RowVersion;
             Context.Entry(existing).CurrentValues.SetValues(entity);
             Context.Entry(existing).Property(e => e.RowVersion).OriginalValue = callerRowVersion;
-            return existing;
         }
-        catch (DbUpdateConcurrencyException ex)
-        {
-            throw new ConcurrencyConflictException(
-                $"A concurrency conflict was detected during upsert for {typeof(TEntity).Name} with ID {entity.Id}.",
-                typeof(TEntity).Name,
-                entity.Id?.ToString(),
-                entity.RowVersion,
-                null,
-                ex
-            );
-        }
+
+        return existing;
     }
 
     /// <inheritdoc />
@@ -69,6 +70,7 @@ public abstract partial class EFCoreRepository<TEntity, TId, TContext>
     )
     {
         ArgumentNullException.ThrowIfNull(entities);
+        ValidateNoNullElements(entities);
         await DbSet.AddRangeAsync(entities, cancellationToken).ConfigureAwait(false);
         return entities;
     }
@@ -80,6 +82,7 @@ public abstract partial class EFCoreRepository<TEntity, TId, TContext>
     )
     {
         ArgumentNullException.ThrowIfNull(entities);
+        ValidateNoNullElements(entities);
         DbSet.UpdateRange(entities);
         return Task.FromResult(entities);
     }
@@ -91,8 +94,20 @@ public abstract partial class EFCoreRepository<TEntity, TId, TContext>
     )
     {
         ArgumentNullException.ThrowIfNull(entities);
+        ValidateNoNullElements(entities);
         DbSet.RemoveRange(entities);
         return Task.FromResult(entities);
+    }
+
+    private static void ValidateNoNullElements(ICollection<TEntity> entities)
+    {
+        int index = 0;
+        foreach (var entity in entities)
+        {
+            if (entity == null)
+                throw new ArgumentException($"Collection contains null entity at index {index}.", nameof(entities));
+            index++;
+        }
     }
 
     /// <inheritdoc />
