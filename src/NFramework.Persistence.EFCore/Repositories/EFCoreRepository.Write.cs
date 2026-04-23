@@ -69,18 +69,13 @@ public abstract partial class EFCoreRepository<TEntity, TId, TContext>
     )
     {
         ArgumentNullException.ThrowIfNull(entities);
-        try
-        {
-            await DbSet.AddRangeAsync(entities, cancellationToken).ConfigureAwait(false);
+        var validEntities = entities.Where(e => e != null).ToList();
+
+        if (validEntities.Count == 0)
             return entities;
-        }
-        catch (DbUpdateException ex)
-        {
-            throw new InvalidOperationException(
-                $"Failed to perform bulk add for {entities.Count} entities of type {typeof(TEntity).Name}.",
-                ex
-            );
-        }
+
+        await DbSet.AddRangeAsync(validEntities, cancellationToken).ConfigureAwait(false);
+        return entities;
     }
 
     /// <inheritdoc />
@@ -90,18 +85,13 @@ public abstract partial class EFCoreRepository<TEntity, TId, TContext>
     )
     {
         ArgumentNullException.ThrowIfNull(entities);
-        try
-        {
-            DbSet.UpdateRange(entities);
+        var validEntities = entities.Where(e => e != null).ToList();
+
+        if (validEntities.Count == 0)
             return Task.FromResult(entities);
-        }
-        catch (DbUpdateException ex)
-        {
-            throw new InvalidOperationException(
-                $"Failed to perform bulk update for {entities.Count} entities of type {typeof(TEntity).Name}.",
-                ex
-            );
-        }
+
+        DbSet.UpdateRange(validEntities);
+        return Task.FromResult(entities);
     }
 
     /// <inheritdoc />
@@ -111,18 +101,13 @@ public abstract partial class EFCoreRepository<TEntity, TId, TContext>
     )
     {
         ArgumentNullException.ThrowIfNull(entities);
-        try
-        {
-            DbSet.RemoveRange(entities);
+        var validEntities = entities.Where(e => e != null).ToList();
+
+        if (validEntities.Count == 0)
             return Task.FromResult(entities);
-        }
-        catch (DbUpdateException ex)
-        {
-            throw new InvalidOperationException(
-                $"Failed to perform bulk delete for {entities.Count} entities of type {typeof(TEntity).Name}.",
-                ex
-            );
-        }
+
+        DbSet.RemoveRange(validEntities);
+        return Task.FromResult(entities);
     }
 
     /// <inheritdoc />

@@ -51,17 +51,7 @@ public static partial class DynamicQueryExtensions
                 $"{o.Field} {(o.Direction == OrderDirection.Desc ? "desc" : "asc")}"
             );
 
-            try
-            {
-                return source.OrderBy(string.Join(", ", orderClauses));
-            }
-            catch (System.Linq.Dynamic.Core.Exceptions.ParseException ex)
-            {
-                throw new ArgumentException(
-                    $"Invalid order field '{string.Join(", ", orders.Select(o => o.Field))}': {ex.Message}",
-                    ex
-                );
-            }
+            return source.OrderBy(string.Join(", ", orderClauses));
         }
     }
 
@@ -72,14 +62,7 @@ public static partial class DynamicQueryExtensions
             return ApplyLogicGroup(source, filter);
 
         (string expression, object?[] args) = BuildFilterExpression(filter);
-        try
-        {
-            return source.Where(expression, args);
-        }
-        catch (System.Linq.Dynamic.Core.Exceptions.ParseException ex)
-        {
-            throw new ArgumentException($"Invalid filter field '{filter.Field}': {ex.Message}", ex);
-        }
+        return source.Where(expression, args);
     }
 
     private static IQueryable<T> ApplyLogicGroup<T>(IQueryable<T> source, Filter group)
@@ -100,14 +83,7 @@ public static partial class DynamicQueryExtensions
         string connector = group.Logic == FilterLogic.Or ? " || " : " && ";
         string combined = string.Join(connector, parts);
 
-        try
-        {
-            return source.Where(combined, [.. allArgs]);
-        }
-        catch (System.Linq.Dynamic.Core.Exceptions.ParseException ex)
-        {
-            throw new ArgumentException($"Invalid filter group expression: {ex.Message}", ex);
-        }
+        return source.Where(combined, [.. allArgs]);
     }
 
     private static (string Expression, object?[] Args) BuildFilterExpression(Filter filter, int paramOffset = 0)
