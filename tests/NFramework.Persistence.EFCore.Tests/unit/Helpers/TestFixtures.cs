@@ -1,7 +1,10 @@
+using System.Runtime.CompilerServices;
 using Microsoft.EntityFrameworkCore;
 using NFramework.Persistence.Abstractions.Entities;
 using NFramework.Persistence.EFCore.Constants;
 using NFramework.Persistence.EFCore.Interceptors;
+
+[assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]
 
 namespace NFramework.Persistence.EFCore.Tests.Unit.Helpers;
 
@@ -38,7 +41,7 @@ internal sealed class TestOrder : SoftDeletableEntity<Guid>
     public string OrderNumber { get; set; } = string.Empty;
 
     /// <summary>Child items in this order.</summary>
-    public ICollection<TestOrderItem> Items { get; set; } = [];
+    public ICollection<TestOrderItem> Items { get; } = [];
 }
 
 /// <summary>
@@ -56,7 +59,7 @@ internal sealed class TestOrderItem : SoftDeletableEntity<Guid>
     public string Description { get; set; } = string.Empty;
 
     /// <summary>Sub-items for this item.</summary>
-    public ICollection<TestOrderSubItem> SubItems { get; set; } = [];
+    public ICollection<TestOrderSubItem> SubItems { get; } = [];
 }
 
 /// <summary>
@@ -89,7 +92,7 @@ internal sealed class TestEmployee : SoftDeletableEntity<Guid>
     public TestEmployee? Manager { get; set; }
 
     /// <summary>Subordinates navigation.</summary>
-    public ICollection<TestEmployee> Subordinates { get; set; } = [];
+    public ICollection<TestEmployee> Subordinates { get; } = [];
 }
 
 /// <summary>
@@ -98,7 +101,7 @@ internal sealed class TestEmployee : SoftDeletableEntity<Guid>
 internal sealed class TestUser : SoftDeletableEntity<Guid>
 {
     public string Name { get; set; } = string.Empty;
-    public ICollection<TestRole> Roles { get; set; } = [];
+    public ICollection<TestRole> Roles { get; } = [];
 }
 
 /// <summary>
@@ -107,7 +110,7 @@ internal sealed class TestUser : SoftDeletableEntity<Guid>
 internal sealed class TestRole : SoftDeletableEntity<Guid>
 {
     public string Name { get; set; } = string.Empty;
-    public ICollection<TestUser> Users { get; set; } = [];
+    public ICollection<TestUser> Users { get; } = [];
 }
 
 /// <summary>
@@ -124,7 +127,7 @@ internal sealed class TestOrderLog : AuditableEntity<Guid>
 /// InMemory test DbContext.
 /// </summary>
 /// <inheritdoc />
-internal sealed class TestDbContext(DbContextOptions<TestDbContext> options) : DbContext(options)
+internal class TestDbContext(DbContextOptions<TestDbContext> options) : DbContext(options)
 {
     /// <summary>Products table.</summary>
     public DbSet<TestProduct> Products => Set<TestProduct>();
