@@ -24,7 +24,6 @@ public static class SensitiveDataExtensions
             int keepEndChars = 0
         )
         {
-            ArgumentNullException.ThrowIfNull(builder);
             return builder.HasAnnotation(
                 AnnotationKeys.SensitiveData,
                 new SensitiveDataConfiguration(maskChar, keepStartChars, keepEndChars)

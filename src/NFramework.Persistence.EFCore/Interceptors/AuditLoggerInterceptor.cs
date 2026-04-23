@@ -16,7 +16,6 @@ namespace NFramework.Persistence.EFCore.Interceptors;
 /// </summary>
 public sealed partial class AuditLoggerInterceptor : SaveChangesInterceptor
 {
-    // ... existing code ...
     /// <inheritdoc />
     public override InterceptionResult<int> SavingChanges(DbContextEventData eventData, InterceptionResult<int> result)
     {
@@ -68,11 +67,15 @@ public sealed partial class AuditLoggerInterceptor : SaveChangesInterceptor
     {
         if (context == null || !context.ChangeTracker.HasChanges())
             return;
+        ILoggerFactory factory =
+            context.GetService<ILoggerFactory>()
+            ?? throw new InvalidOperationException(
+                "Audit logging is enabled but ILoggerFactory is not configured in the DbContext."
+            );
 
-        ILogger? logger = context.GetService<ILoggerFactory>()?.CreateLogger<AuditLoggerInterceptor>();
-        if (logger == null || !logger.IsEnabled(LogLevel.Information))
+        ILogger logger = factory.CreateLogger<AuditLoggerInterceptor>();
+        if (!logger.IsEnabled(LogLevel.Information))
             return;
-
         List<EntityEntry> entries =
         [
             .. context
@@ -169,9 +172,14 @@ public sealed partial class AuditLoggerInterceptor : SaveChangesInterceptor
         if (eventData.Context == null)
             return;
 
-        ILogger? logger = eventData.Context.GetService<ILoggerFactory>()?.CreateLogger<AuditLoggerInterceptor>();
-        if (logger != null)
-            LogSaveChangesFailed(logger, eventData.Context.ContextId.InstanceId, eventData.Exception);
+        ILoggerFactory factory =
+            eventData.Context.GetService<ILoggerFactory>()
+            ?? throw new InvalidOperationException(
+                "Audit logging is enabled but ILoggerFactory is not configured in the DbContext."
+            );
+
+        ILogger logger = factory.CreateLogger<AuditLoggerInterceptor>();
+        LogSaveChangesFailed(logger, eventData.Context.ContextId.InstanceId, eventData.Exception);
     }
 
     [LoggerMessage(EventId = 2, Level = LogLevel.Error, Message = "SaveChanges failed for context {ContextId}")]
