@@ -10,6 +10,12 @@ namespace NFramework.Persistence.Abstractions.Entities;
 public abstract class AuditableEntity<TId> : Entity<TId>, IAuditableEntity, IValidatableObject
     where TId : IEquatable<TId>
 {
+    protected AuditableEntity(TId id)
+        : base(id) { }
+
+    protected AuditableEntity()
+        : base() { }
+
     /// <summary>
     /// Timestamp set when the entity is first persisted.
     /// Implementations are responsible for setting this value.

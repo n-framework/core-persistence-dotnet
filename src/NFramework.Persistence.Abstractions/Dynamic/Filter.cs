@@ -13,6 +13,24 @@ namespace NFramework.Persistence.Abstractions.Dynamic;
 )]
 public class Filter : IValidatableObject
 {
+    public Filter() { }
+
+    public Filter(string field, FilterOperator @operator, object? value = null)
+    {
+        if (string.IsNullOrWhiteSpace(field))
+            throw new ArgumentException("Field name cannot be empty.", nameof(field));
+
+        Field = field;
+        Operator = @operator;
+        Value = value;
+    }
+
+    public Filter(FilterLogic logic, ICollection<Filter> filters)
+    {
+        Logic = logic;
+        Filters = filters ?? throw new ArgumentNullException(nameof(filters));
+    }
+
     /// <summary>Property name on the entity to filter.</summary>
     public string Field
     {
