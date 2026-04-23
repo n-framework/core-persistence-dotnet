@@ -239,7 +239,7 @@ internal sealed class TestDbContext(DbContextOptions<TestDbContext> options) : D
     {
         DbContextOptions<TestDbContext> options = new DbContextOptionsBuilder<TestDbContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
-            .AddInterceptors(new AuditSaveChangesInterceptor())
+            .AddInterceptors(new SoftDeletionInterceptor(), new AuditableInterceptor())
             .Options;
 
         TestDbContext context = new(options);

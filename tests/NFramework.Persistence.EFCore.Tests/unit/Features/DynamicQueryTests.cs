@@ -564,4 +564,109 @@ public class DynamicQueryTests
         resultsDesc[1].Price.ShouldBe(20m);
         resultsDesc[2].Price.ShouldBe(10m);
     }
+
+    [Fact]
+    public async Task AnyByDynamicAsync_ShouldReturnTrueIfMatchesExist()
+    {
+        using TestDbContext context = TestDbContext.Create();
+        TestProductRepository repo = new(context);
+
+        await repo.AddAsync(new TestProduct { Id = Guid.NewGuid(), Name = "Match" });
+        await repo.SaveChangesAsync();
+
+        DynamicQueryOption optionsMatch = new(
+            Filters:
+            [
+                new Filter
+                {
+                    Field = "Name",
+                    Operator = FilterOperator.Equal,
+                    Value = "Match",
+                },
+            ]
+        );
+        DynamicQueryOption optionsNoMatch = new(
+            Filters:
+            [
+                new Filter
+                {
+                    Field = "Name",
+                    Operator = FilterOperator.Equal,
+                    Value = "NoMatch",
+                },
+            ]
+        );
+
+        bool hasMatch = await repo.AnyByDynamicAsync(optionsMatch);
+        bool hasNoMatch = await repo.AnyByDynamicAsync(optionsNoMatch);
+
+        hasMatch.ShouldBeTrue();
+        hasNoMatch.ShouldBeFalse();
+    }
+
+    [Fact]
+    public async Task GetAllByDynamicAsync_WithNumericOperators_ShouldReturnMatches()
+    {
+        using TestDbContext context = TestDbContext.Create();
+        TestProductRepository repo = new(context);
+
+        await repo.AddAsync(
+            new TestProduct
+            {
+                Id = Guid.NewGuid(),
+                Name = "10",
+                Price = 10m,
+            }
+        );
+        await repo.AddAsync(
+            new TestProduct
+            {
+                Id = Guid.NewGuid(),
+                Name = "20",
+                Price = 20m,
+            }
+        );
+        await repo.AddAsync(
+            new TestProduct
+            {
+                Id = Guid.NewGuid(),
+                Name = "30",
+                Price = 30m,
+            }
+        );
+        await repo.SaveChangesAsync();
+
+        // GreaterThan
+        IReadOnlyList<TestProduct> gt20 = await repo.GetAllByDynamicAsync(
+            new DynamicQueryOption(
+                Filters:
+                [
+                    new Filter
+                    {
+                        Field = "Price",
+                        Operator = FilterOperator.GreaterThan,
+                        Value = 20m,
+                    },
+                ]
+            )
+        );
+        gt20.Count.ShouldBe(1);
+        gt20[0].Price.ShouldBe(30m);
+
+        // LessThanOrEqual
+        IReadOnlyList<TestProduct> lte20 = await repo.GetAllByDynamicAsync(
+            new DynamicQueryOption(
+                Filters:
+                [
+                    new Filter
+                    {
+                        Field = "Price",
+                        Operator = FilterOperator.LessThanOrEqual,
+                        Value = 20m,
+                    },
+                ]
+            )
+        );
+        lte20.Count.ShouldBe(2);
+    }
 }

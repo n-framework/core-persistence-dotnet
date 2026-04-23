@@ -6,7 +6,7 @@ using Xunit;
 namespace NFramework.Persistence.EFCore.Tests.Unit.Interceptors;
 
 /// <summary>
-/// Tests for many-to-many soft delete safety via the <see cref="AuditSaveChangesInterceptor"/>.
+/// Tests for many-to-many soft delete safety via the <see cref="SoftDeletionInterceptor"/>.
 /// </summary>
 public sealed class SoftDeleteManyToManyTests
 {

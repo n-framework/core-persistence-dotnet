@@ -442,4 +442,18 @@ public class CrudTests
         verify.Price.ShouldBe(50.00m);
         ReferenceEquals(result, trackedEntity).ShouldBeTrue();
     }
+
+    [Fact]
+    public async Task GetAllAsync_WhenCancelled_ShouldThrowOperationCanceledException()
+    {
+        using TestDbContext context = TestDbContext.Create();
+        TestProductRepository repo = new(context);
+
+        using CancellationTokenSource cts = new();
+        await cts.CancelAsync();
+
+        await Should.ThrowAsync<OperationCanceledException>(async () =>
+            await repo.GetAllAsync(cancellationToken: cts.Token)
+        );
+    }
 }

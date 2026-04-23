@@ -50,7 +50,7 @@ internal sealed class SqliteTestDbContext : DbContext
 
         DbContextOptions<SqliteTestDbContext> options = new DbContextOptionsBuilder<SqliteTestDbContext>()
             .UseSqlite(connection)
-            .AddInterceptors(new AuditSaveChangesInterceptor())
+            .AddInterceptors(new SoftDeletionInterceptor(), new AuditableInterceptor())
             .Options;
 
         SqliteTestDbContext context = new(options, connection);

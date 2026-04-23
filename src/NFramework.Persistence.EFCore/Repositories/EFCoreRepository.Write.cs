@@ -23,13 +23,16 @@ public abstract partial class EFCoreRepository<TEntity, TId, TContext>
             ?? throw new InvalidOperationException($"Entity {typeof(TEntity).Name} with ID {entity.Id} not found.");
 
         if (!ReferenceEquals(existing, entity))
-        {
-            byte[] callerRowVersion = entity.RowVersion;
-            Context.Entry(existing).CurrentValues.SetValues(entity);
-            Context.Entry(existing).Property(e => e.RowVersion).OriginalValue = callerRowVersion;
-        }
+            applyConcurrencyValues(existing, entity);
 
         return existing;
+    }
+
+    private void applyConcurrencyValues(TEntity existing, TEntity callerEntity)
+    {
+        byte[] callerRowVersion = callerEntity.RowVersion;
+        Context.Entry(existing).CurrentValues.SetValues(callerEntity);
+        Context.Entry(existing).Property(e => e.RowVersion).OriginalValue = callerRowVersion;
     }
 
     /// <inheritdoc />
@@ -42,11 +45,7 @@ public abstract partial class EFCoreRepository<TEntity, TId, TContext>
             return await AddAsync(entity, cancellationToken).ConfigureAwait(false);
 
         if (!ReferenceEquals(existing, entity))
-        {
-            byte[] callerRowVersion = entity.RowVersion;
-            Context.Entry(existing).CurrentValues.SetValues(entity);
-            Context.Entry(existing).Property(e => e.RowVersion).OriginalValue = callerRowVersion;
-        }
+            applyConcurrencyValues(existing, entity);
 
         return existing;
     }
@@ -54,7 +53,7 @@ public abstract partial class EFCoreRepository<TEntity, TId, TContext>
     /// <inheritdoc />
     /// <remarks>
     /// For entities inheriting from SoftDeletableEntity, this operation will be translated
-    /// into a soft delete by the AuditSaveChangesInterceptor during SaveChangesAsync.
+    /// into a soft delete by the SoftDeletionInterceptor during SaveChangesAsync.
     /// </remarks>
     public virtual Task<TEntity> DeleteAsync(TEntity entity, CancellationToken cancellationToken = default)
     {
@@ -70,9 +69,18 @@ public abstract partial class EFCoreRepository<TEntity, TId, TContext>
     )
     {
         ArgumentNullException.ThrowIfNull(entities);
-        ValidateNoNullElements(entities);
-        await DbSet.AddRangeAsync(entities, cancellationToken).ConfigureAwait(false);
-        return entities;
+        try
+        {
+            await DbSet.AddRangeAsync(entities, cancellationToken).ConfigureAwait(false);
+            return entities;
+        }
+        catch (DbUpdateException ex)
+        {
+            throw new InvalidOperationException(
+                $"Failed to perform bulk add for {entities.Count} entities of type {typeof(TEntity).Name}.",
+                ex
+            );
+        }
     }
 
     /// <inheritdoc />
@@ -82,9 +90,18 @@ public abstract partial class EFCoreRepository<TEntity, TId, TContext>
     )
     {
         ArgumentNullException.ThrowIfNull(entities);
-        ValidateNoNullElements(entities);
-        DbSet.UpdateRange(entities);
-        return Task.FromResult(entities);
+        try
+        {
+            DbSet.UpdateRange(entities);
+            return Task.FromResult(entities);
+        }
+        catch (DbUpdateException ex)
+        {
+            throw new InvalidOperationException(
+                $"Failed to perform bulk update for {entities.Count} entities of type {typeof(TEntity).Name}.",
+                ex
+            );
+        }
     }
 
     /// <inheritdoc />
@@ -94,19 +111,17 @@ public abstract partial class EFCoreRepository<TEntity, TId, TContext>
     )
     {
         ArgumentNullException.ThrowIfNull(entities);
-        ValidateNoNullElements(entities);
-        DbSet.RemoveRange(entities);
-        return Task.FromResult(entities);
-    }
-
-    private static void ValidateNoNullElements(ICollection<TEntity> entities)
-    {
-        int index = 0;
-        foreach (var entity in entities)
+        try
         {
-            if (entity == null)
-                throw new ArgumentException($"Collection contains null entity at index {index}.", nameof(entities));
-            index++;
+            DbSet.RemoveRange(entities);
+            return Task.FromResult(entities);
+        }
+        catch (DbUpdateException ex)
+        {
+            throw new InvalidOperationException(
+                $"Failed to perform bulk delete for {entities.Count} entities of type {typeof(TEntity).Name}.",
+                ex
+            );
         }
     }
 
@@ -124,42 +139,46 @@ public abstract partial class EFCoreRepository<TEntity, TId, TContext>
             string entityId = entry?.Property("Id").CurrentValue?.ToString() ?? "Unknown";
 
             byte[]? currentVersion = entry?.Property("RowVersion").CurrentValue as byte[];
+            byte[]? originalVersion = entry?.Property("RowVersion").OriginalValue as byte[];
 
             throw new ConcurrencyConflictException(
                 $"A concurrency conflict was detected for {entityType} with ID {entityId}. The entity was modified by another process.",
                 entityType,
                 entityId,
                 currentVersion,
-                null,
+                originalVersion,
                 ex
             );
         }
     }
 
     /// <inheritdoc />
+    /// <exception cref="InvalidOperationException">Thrown when a transaction is already active.</exception>
     public virtual async Task BeginTransactionAsync(CancellationToken cancellationToken = default)
     {
         if (Context.Database.CurrentTransaction != null)
-            return;
+            throw new InvalidOperationException("A transaction is already active.");
 
         _ = await Context.Database.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
     }
 
     /// <inheritdoc />
+    /// <exception cref="InvalidOperationException">Thrown when no transaction is active to commit.</exception>
     public virtual async Task CommitTransactionAsync(CancellationToken cancellationToken = default)
     {
         if (Context.Database.CurrentTransaction == null)
-            return;
+            throw new InvalidOperationException("No transaction is active to commit.");
 
-        await Context.Database.CurrentTransaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+        await Context.Database.CommitTransactionAsync(cancellationToken).ConfigureAwait(false);
     }
 
     /// <inheritdoc />
+    /// <exception cref="InvalidOperationException">Thrown when no transaction is active to roll back.</exception>
     public virtual async Task RollbackTransactionAsync(CancellationToken cancellationToken = default)
     {
         if (Context.Database.CurrentTransaction == null)
-            return;
+            throw new InvalidOperationException("No transaction is active to roll back.");
 
-        await Context.Database.CurrentTransaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+        await Context.Database.RollbackTransactionAsync(cancellationToken).ConfigureAwait(false);
     }
 }

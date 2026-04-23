@@ -6,7 +6,7 @@ using Xunit;
 namespace NFramework.Persistence.EFCore.Tests.Unit.Interceptors;
 
 /// <summary>
-/// Tests for cascade soft-delete behavior via the <see cref="AuditSaveChangesInterceptor"/>.
+/// Tests for cascade soft-delete behavior via the <see cref="SoftDeletionInterceptor"/>.
 /// </summary>
 public sealed class CascadeSoftDeleteTests
 {

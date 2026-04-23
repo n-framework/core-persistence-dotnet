@@ -72,22 +72,22 @@ public class TransactionTests
     }
 
     [Fact]
-    public async Task RollbackTransactionAsync_WithoutBegin_ShouldNotThrow()
+    public async Task RollbackTransactionAsync_WithoutBegin_ShouldThrow()
     {
         using var context = CreateSqliteContext();
         var repo = new TestProductRepository(context);
 
-        // Act & Assert (Should not throw)
-        await repo.RollbackTransactionAsync();
+        // Act & Assert
+        await Should.ThrowAsync<InvalidOperationException>(async () => await repo.RollbackTransactionAsync());
     }
 
     [Fact]
-    public async Task CommitTransactionAsync_WithoutBegin_ShouldNotThrow()
+    public async Task CommitTransactionAsync_WithoutBegin_ShouldThrow()
     {
         using var context = CreateSqliteContext();
         var repo = new TestProductRepository(context);
 
-        // Act & Assert (Should not throw)
-        await repo.CommitTransactionAsync();
+        // Act & Assert
+        await Should.ThrowAsync<InvalidOperationException>(async () => await repo.CommitTransactionAsync());
     }
 }
