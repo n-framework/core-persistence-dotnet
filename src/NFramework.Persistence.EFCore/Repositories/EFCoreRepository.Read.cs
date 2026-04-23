@@ -78,6 +78,8 @@ public abstract partial class EFCoreRepository<TEntity, TId, TContext>
         if (options is IQueryOptionWithSoftDelete { IncludeDeleted: true })
             query = query.IgnoreQueryFilters(QueryFilters.SoftDeletionArray);
 
+        query = query.ApplyTracking(options);
+
         if (options?.Predicate != null)
             query = query.Where(options.Predicate);
 

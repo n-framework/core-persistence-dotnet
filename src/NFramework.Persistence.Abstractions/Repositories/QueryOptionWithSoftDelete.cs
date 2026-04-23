@@ -8,5 +8,6 @@ namespace NFramework.Persistence.Abstractions.Repositories;
 public record QueryOptionWithSoftDelete<TEntity>(
     Expression<Func<TEntity, bool>>? Predicate = null,
     Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>>? OrderBy = null,
-    bool IncludeDeleted = false
-) : QueryOption<TEntity>(Predicate, OrderBy), IQueryOptionWithSoftDelete;
+    bool IncludeDeleted = false,
+    QueryTrackingMode Tracking = QueryTrackingMode.Default
+) : QueryOption<TEntity>(Predicate, OrderBy, Tracking), IQueryOptionWithSoftDelete;

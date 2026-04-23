@@ -7,5 +7,6 @@ namespace NFramework.Persistence.Abstractions.Repositories;
 /// </summary>
 public record QueryOption<TEntity>(
     Expression<Func<TEntity, bool>>? Predicate = null,
-    Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>>? OrderBy = null
-) : IFilterableQuery<TEntity>, IOrderableQuery<TEntity>;
+    Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>>? OrderBy = null,
+    QueryTrackingMode Tracking = QueryTrackingMode.Default
+) : IFilterableQuery<TEntity>, IOrderableQuery<TEntity>, IQueryTracking;

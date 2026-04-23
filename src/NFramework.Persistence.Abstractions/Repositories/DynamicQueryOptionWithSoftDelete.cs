@@ -8,5 +8,6 @@ namespace NFramework.Persistence.Abstractions.Repositories;
 public record DynamicQueryOptionWithSoftDelete(
     IReadOnlyCollection<Filter>? Filters = null,
     IReadOnlyCollection<Order>? Orders = null,
-    bool IncludeDeleted = false
-) : DynamicQueryOption(Filters, Orders), IQueryOptionWithSoftDelete;
+    bool IncludeDeleted = false,
+    QueryTrackingMode Tracking = QueryTrackingMode.Default
+) : DynamicQueryOption(Filters, Orders, Tracking), IQueryOptionWithSoftDelete;
