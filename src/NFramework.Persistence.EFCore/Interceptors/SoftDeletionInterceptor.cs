@@ -133,23 +133,7 @@ public sealed class SoftDeletionInterceptor : SaveChangesInterceptor
                 CollectionEntry collectionEntry = entry.Collection(navigation.PropertyInfo!.Name);
                 if (!collectionEntry.IsLoaded)
                 {
-                    try
-                    {
-                        collectionEntry.Load();
-                    }
-                    catch (Exception ex)
-                        when (ex
-                                is DbUpdateException
-                                    or OperationCanceledException
-                                    or TimeoutException
-                                    or InvalidOperationException
-                        )
-                    {
-                        throw new InvalidOperationException(
-                            $"Failed to load collection navigation '{navigation.PropertyInfo!.Name}' for entity '{entry.Metadata.Name}'.",
-                            ex
-                        );
-                    }
+                    collectionEntry.Load();
                 }
 
                 foreach (EntityEntry childEntry in GetValidChildren(context, collectionEntry.CurrentValue))
@@ -160,23 +144,7 @@ public sealed class SoftDeletionInterceptor : SaveChangesInterceptor
                 ReferenceEntry referenceEntry = entry.Reference(navigation.PropertyInfo!.Name);
                 if (!referenceEntry.IsLoaded)
                 {
-                    try
-                    {
-                        referenceEntry.Load();
-                    }
-                    catch (Exception ex)
-                        when (ex
-                                is DbUpdateException
-                                    or OperationCanceledException
-                                    or TimeoutException
-                                    or InvalidOperationException
-                        )
-                    {
-                        throw new InvalidOperationException(
-                            $"Failed to load reference navigation '{navigation.PropertyInfo!.Name}' for entity '{entry.Metadata.Name}'.",
-                            ex
-                        );
-                    }
+                    referenceEntry.Load();
                 }
 
                 if (GetValidChild(context, referenceEntry.CurrentValue) is { } childEntry)
@@ -206,23 +174,7 @@ public sealed class SoftDeletionInterceptor : SaveChangesInterceptor
                 CollectionEntry collectionEntry = entry.Collection(navigation.PropertyInfo!.Name);
                 if (!collectionEntry.IsLoaded)
                 {
-                    try
-                    {
-                        await collectionEntry.LoadAsync(cancellationToken).ConfigureAwait(false);
-                    }
-                    catch (Exception ex)
-                        when (ex
-                                is DbUpdateException
-                                    or OperationCanceledException
-                                    or TimeoutException
-                                    or InvalidOperationException
-                        )
-                    {
-                        throw new InvalidOperationException(
-                            $"Failed to load collection navigation '{navigation.PropertyInfo!.Name}' for entity '{entry.Metadata.Name}'.",
-                            ex
-                        );
-                    }
+                    await collectionEntry.LoadAsync(cancellationToken).ConfigureAwait(false);
                 }
 
                 foreach (EntityEntry childEntry in GetValidChildren(context, collectionEntry.CurrentValue))
@@ -234,23 +186,7 @@ public sealed class SoftDeletionInterceptor : SaveChangesInterceptor
                 ReferenceEntry referenceEntry = entry.Reference(navigation.PropertyInfo!.Name);
                 if (!referenceEntry.IsLoaded)
                 {
-                    try
-                    {
-                        await referenceEntry.LoadAsync(cancellationToken).ConfigureAwait(false);
-                    }
-                    catch (Exception ex)
-                        when (ex
-                                is DbUpdateException
-                                    or OperationCanceledException
-                                    or TimeoutException
-                                    or InvalidOperationException
-                        )
-                    {
-                        throw new InvalidOperationException(
-                            $"Failed to load reference navigation '{navigation.PropertyInfo!.Name}' for entity '{entry.Metadata.Name}'.",
-                            ex
-                        );
-                    }
+                    await referenceEntry.LoadAsync(cancellationToken).ConfigureAwait(false);
                 }
 
                 if (GetValidChild(context, referenceEntry.CurrentValue) is { } childEntry)

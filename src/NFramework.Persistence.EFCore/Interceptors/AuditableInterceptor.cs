@@ -40,17 +40,24 @@ public sealed class AuditableInterceptor : SaveChangesInterceptor
         if (context == null || !context.ChangeTracker.HasChanges())
             return;
 
-        DateTime now = DateTime.UtcNow;
-
-        foreach (EntityEntry entry in context.ChangeTracker.Entries())
+        try
         {
-            if (entry.Entity is IAuditableEntity auditable)
+            DateTime now = DateTime.UtcNow;
+
+            foreach (EntityEntry entry in context.ChangeTracker.Entries())
             {
-                if (entry.State == EntityState.Added)
-                    auditable.CreatedAt = now;
-                else if (entry.State == EntityState.Modified)
-                    auditable.UpdatedAt = now;
+                if (entry.Entity is IAuditableEntity auditable)
+                {
+                    if (entry.State == EntityState.Added)
+                        auditable.CreatedAt = now;
+                    else if (entry.State == EntityState.Modified)
+                        auditable.UpdatedAt = now;
+                }
             }
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException("An error occurred while updating auditable entity timestamps.", ex);
         }
     }
 }
