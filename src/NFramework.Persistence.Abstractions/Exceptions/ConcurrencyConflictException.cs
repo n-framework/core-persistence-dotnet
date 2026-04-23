@@ -11,7 +11,7 @@ public sealed class ConcurrencyConflictException : Exception
 
 #pragma warning disable CA1819 // Properties should not return arrays
     public byte[]? CurrentVersion { get; }
-    public byte[]? ConflictingVersion { get; }
+    public byte[]? OriginalVersion { get; }
 #pragma warning restore CA1819 // Properties should not return arrays
 
     public ConcurrencyConflictException()
@@ -28,7 +28,7 @@ public sealed class ConcurrencyConflictException : Exception
         string? entityType,
         string? entityId,
         byte[]? currentVersion,
-        byte[]? conflictingVersion,
+        byte[]? originalVersion,
         Exception? innerException = null
     )
         : base(message, innerException)
@@ -36,6 +36,6 @@ public sealed class ConcurrencyConflictException : Exception
         EntityType = entityType;
         EntityId = entityId;
         CurrentVersion = currentVersion;
-        ConflictingVersion = conflictingVersion;
+        OriginalVersion = originalVersion;
     }
 }
