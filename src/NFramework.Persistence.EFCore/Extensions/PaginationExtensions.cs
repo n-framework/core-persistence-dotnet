@@ -24,30 +24,29 @@ public static class PaginationExtensions
             CancellationToken cancellationToken = default
         )
         {
-            int totalCount = await source.CountAsync(cancellationToken).ConfigureAwait(false);
-            int totalPages = totalCount == 0 ? 0 : (int)Math.Ceiling((double)totalCount / paging.Size);
-
             long skipItems = (long)paging.Index * paging.Size;
             if (skipItems > int.MaxValue)
-            {
                 throw new ArgumentOutOfRangeException(
                     nameof(paging),
                     "Pagination parameters result in an overflow of the maximum skipped items."
                 );
-            }
 
-            List<T> items = [];
-            if (totalCount > 0 && skipItems < totalCount)
-            {
-                items = await source
-                    .Skip((int)skipItems)
-                    .Take((int)paging.Size)
-                    .ToListAsync(cancellationToken)
-                    .ConfigureAwait(false);
-            }
+            int totalCount = await source.CountAsync(cancellationToken).ConfigureAwait(false);
+            if (totalCount == 0)
+                return new PaginatedList<T>([], new PagingMeta(paging, 0, 0));
 
-            PagingMeta meta = new(paging, totalCount, totalPages);
-            return new PaginatedList<T>(items, meta);
+            int totalPages = (int)Math.Ceiling((double)totalCount / paging.Size);
+
+            if (skipItems >= totalCount)
+                return new PaginatedList<T>([], new PagingMeta(paging, totalCount, totalPages));
+
+            List<T> items = await source
+                .Skip((int)skipItems)
+                .Take((int)paging.Size)
+                .ToListAsync(cancellationToken)
+                .ConfigureAwait(false);
+
+            return new PaginatedList<T>(items, new PagingMeta(paging, totalCount, totalPages));
         }
     }
 }
