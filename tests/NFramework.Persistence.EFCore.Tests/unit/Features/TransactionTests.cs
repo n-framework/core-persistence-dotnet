@@ -11,83 +11,123 @@ public class TransactionTests
     // Note: EF Core InMemory database does NOT support transactions.
     // We must use a SQLite in-memory database to test real transaction behavior.
 
-#pragma warning disable CA2000 // Dispose objects before losing scope
-    private static TestDbContext CreateSqliteContext()
-    {
-        var connection = new Microsoft.Data.Sqlite.SqliteConnection("DataSource=:memory:");
-        connection.Open();
-        var options = new DbContextOptionsBuilder<TestDbContext>().UseSqlite(connection).Options;
-        var context = new TestDbContext(options);
-        context.Database.EnsureCreated();
-        return context;
-    }
-#pragma warning restore CA2000 // Dispose objects before losing scope
-
     [Fact]
     public async Task CommitTransactionAsync_ShouldPersistChanges()
     {
-        using var context = CreateSqliteContext();
-        var repo = new TestProductRepository(context);
+        var connection = new Microsoft.Data.Sqlite.SqliteConnection("DataSource=:memory:");
+        await connection.OpenAsync();
+        try
+        {
+            var options = new DbContextOptionsBuilder<TestDbContext>().UseSqlite(connection).Options;
+            using var context = new TestDbContext(options);
+            await context.Database.EnsureCreatedAsync();
 
-        await repo.BeginTransactionAsync();
+            var repo = new TestProductRepository(context);
 
-        await repo.AddAsync(
-            new TestProduct
-            {
-                Id = Guid.NewGuid(),
-                Name = "TxProduct",
-                Price = 1.0m,
-            }
-        );
-        await repo.SaveChangesAsync();
+            await repo.BeginTransactionAsync();
 
-        await repo.CommitTransactionAsync();
+            await repo.AddAsync(
+                new TestProduct
+                {
+                    Id = Guid.NewGuid(),
+                    Name = "TxProduct",
+                    Price = 1.0m,
+                }
+            );
+            await repo.SaveChangesAsync();
 
-        int count = await repo.CountAsync();
-        count.ShouldBe(1);
+            await repo.CommitTransactionAsync();
+
+            int count = await repo.CountAsync();
+            count.ShouldBe(1);
+        }
+        finally
+        {
+            await connection.CloseAsync();
+            connection.Dispose();
+        }
     }
 
     [Fact]
     public async Task RollbackTransactionAsync_ShouldDiscardChanges()
     {
-        using var context = CreateSqliteContext();
-        var repo = new TestProductRepository(context);
+        var connection = new Microsoft.Data.Sqlite.SqliteConnection("DataSource=:memory:");
+        await connection.OpenAsync();
+        try
+        {
+            var options = new DbContextOptionsBuilder<TestDbContext>().UseSqlite(connection).Options;
+            using var context = new TestDbContext(options);
+            await context.Database.EnsureCreatedAsync();
 
-        await repo.BeginTransactionAsync();
+            var repo = new TestProductRepository(context);
 
-        await repo.AddAsync(
-            new TestProduct
-            {
-                Id = Guid.NewGuid(),
-                Name = "TxProduct",
-                Price = 1.0m,
-            }
-        );
-        await repo.SaveChangesAsync();
+            await repo.BeginTransactionAsync();
 
-        await repo.RollbackTransactionAsync();
+            await repo.AddAsync(
+                new TestProduct
+                {
+                    Id = Guid.NewGuid(),
+                    Name = "TxProduct",
+                    Price = 1.0m,
+                }
+            );
+            await repo.SaveChangesAsync();
 
-        int count = await repo.CountAsync();
-        count.ShouldBe(0);
+            await repo.RollbackTransactionAsync();
+
+            int count = await repo.CountAsync();
+            count.ShouldBe(0);
+        }
+        finally
+        {
+            await connection.CloseAsync();
+            connection.Dispose();
+        }
     }
 
     [Fact]
     public async Task RollbackTransactionAsync_WithoutBegin_ShouldThrow()
     {
-        using var context = CreateSqliteContext();
-        var repo = new TestProductRepository(context);
+        var connection = new Microsoft.Data.Sqlite.SqliteConnection("DataSource=:memory:");
+        await connection.OpenAsync();
+        try
+        {
+            var options = new DbContextOptionsBuilder<TestDbContext>().UseSqlite(connection).Options;
+            using var context = new TestDbContext(options);
+            await context.Database.EnsureCreatedAsync();
 
-        // Act & Assert
-        await Should.ThrowAsync<InvalidOperationException>(async () => await repo.RollbackTransactionAsync());
+            var repo = new TestProductRepository(context);
+
+            // Act & Assert
+            await Should.ThrowAsync<InvalidOperationException>(async () => await repo.RollbackTransactionAsync());
+        }
+        finally
+        {
+            await connection.CloseAsync();
+            connection.Dispose();
+        }
     }
 
     [Fact]
     public async Task CommitTransactionAsync_WithoutBegin_ShouldThrow()
     {
-        using var context = CreateSqliteContext();
-        var repo = new TestProductRepository(context);
+        var connection = new Microsoft.Data.Sqlite.SqliteConnection("DataSource=:memory:");
+        await connection.OpenAsync();
+        try
+        {
+            var options = new DbContextOptionsBuilder<TestDbContext>().UseSqlite(connection).Options;
+            using var context = new TestDbContext(options);
+            await context.Database.EnsureCreatedAsync();
 
-        // Act & Assert
-        await Should.ThrowAsync<InvalidOperationException>(async () => await repo.CommitTransactionAsync());
+            var repo = new TestProductRepository(context);
+
+            // Act & Assert
+            await Should.ThrowAsync<InvalidOperationException>(async () => await repo.CommitTransactionAsync());
+        }
+        finally
+        {
+            await connection.CloseAsync();
+            connection.Dispose();
+        }
     }
 }
