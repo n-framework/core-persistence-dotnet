@@ -6,7 +6,7 @@ namespace NFramework.Persistence.Abstractions.Repositories;
 /// Dynamic query options with soft delete support.
 /// </summary>
 public record DynamicQueryOptionWithSoftDelete(
-    ICollection<Filter>? Filters = null,
-    ICollection<Order>? Orders = null,
+    IReadOnlyCollection<Filter>? Filters = null,
+    IReadOnlyCollection<Order>? Orders = null,
     bool IncludeDeleted = false
 ) : DynamicQueryOption(Filters, Orders), IQueryOptionWithSoftDelete;

@@ -7,12 +7,13 @@ namespace NFramework.Persistence.EFCore.Extensions;
 /// Translates abstraction-layer <see cref="Filter"/> and <see cref="Order"/> descriptors
 /// into <see cref="IQueryable{T}"/> operations via System.Linq.Dynamic.Core.
 /// </summary>
-public static class DynamicQueryExtensions
+public static partial class DynamicQueryExtensions
 {
-    private static readonly System.Text.RegularExpressions.Regex FieldNameRegex = new(
+    [System.Text.RegularExpressions.GeneratedRegex(
         @"^[a-zA-Z_][a-zA-Z0-9_]*(\.[a-zA-Z_][a-zA-Z0-9_]*)*$",
         System.Text.RegularExpressions.RegexOptions.Compiled
-    );
+    )]
+    private static partial System.Text.RegularExpressions.Regex FieldNameRegex { get; }
 
     extension<T>(IQueryable<T> source)
         where T : class
@@ -20,7 +21,7 @@ public static class DynamicQueryExtensions
         /// <summary>
         /// Applies a collection of <see cref="Filter"/> descriptors to the query.
         /// </summary>
-        public IQueryable<T> ApplyFilters(ICollection<Filter>? filters)
+        public IQueryable<T> ApplyFilters(IReadOnlyCollection<Filter>? filters)
         {
             if (filters == null || filters.Count == 0)
                 return source;
@@ -35,10 +36,16 @@ public static class DynamicQueryExtensions
         /// <summary>
         /// Applies a collection of <see cref="Order"/> descriptors to the query.
         /// </summary>
-        public IQueryable<T> ApplyOrders(ICollection<Order>? orders)
+        public IQueryable<T> ApplyOrders(IReadOnlyCollection<Order>? orders)
         {
             if (orders == null || orders.Count == 0)
                 return source;
+
+            var invalidOrder = orders.FirstOrDefault(o =>
+                string.IsNullOrWhiteSpace(o.Field) || !FieldNameRegex.IsMatch(o.Field)
+            );
+            if (invalidOrder != null)
+                throw new ArgumentException($"Invalid or unsafe order field name: '{invalidOrder.Field}'");
 
             IEnumerable<string> orderClauses = orders.Select(o =>
                 $"{o.Field} {(o.Direction == OrderDirection.Desc ? "desc" : "asc")}"
@@ -114,6 +121,7 @@ public static class DynamicQueryExtensions
         string fieldName = filter.Field;
         if (string.IsNullOrWhiteSpace(fieldName) || !FieldNameRegex.IsMatch(fieldName))
             throw new ArgumentException($"Invalid or unsafe field name: '{fieldName}'");
+
         string paramName = $"@{paramOffset}";
 
         (string expr, object?[] args) = filter.Operator switch
@@ -145,9 +153,7 @@ public static class DynamicQueryExtensions
         };
 
         if (filter.IsNot)
-        {
             expr = $"!({expr})";
-        }
 
         return (expr, args);
     }

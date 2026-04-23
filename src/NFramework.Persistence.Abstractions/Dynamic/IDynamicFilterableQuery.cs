@@ -6,5 +6,5 @@ namespace NFramework.Persistence.Abstractions.Dynamic;
 public interface IDynamicFilterableQuery
 {
     /// <summary>Filter conditions to apply.</summary>
-    ICollection<Filter>? Filters { get; init; }
+    IReadOnlyCollection<Filter>? Filters { get; init; }
 }

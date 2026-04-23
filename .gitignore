@@ -42,6 +42,9 @@ ScaffoldingReadMe.txt
 *~
 CodeCoverage/
 
+# Agents
+.serena/
+
 # MSBuild Binary and Structured Log
 *.binlog
 
