@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using NFramework.Persistence.Abstractions.Entities;
+using NFramework.Persistence.EFCore.Constants;
 using NFramework.Persistence.EFCore.Interceptors;
 
 namespace NFramework.Persistence.EFCore.Tests.Unit.Helpers;
@@ -162,7 +163,7 @@ internal sealed class TestDbContext(DbContextOptions<TestDbContext> options) : D
         {
             _ = entity.HasKey(e => e.Id);
             _ = entity.Property(e => e.RowVersion).IsRequired().HasDefaultValue(Array.Empty<byte>());
-            _ = entity.HasQueryFilter(e => !e.IsDeleted);
+            _ = entity.HasQueryFilter(QueryFilters.SoftDeletion, e => !e.IsDeleted);
         });
 
         _ = modelBuilder.Entity<TestCategory>(entity =>

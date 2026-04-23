@@ -18,5 +18,5 @@ public readonly record struct PagingMeta(Paging Paging, int TotalCount, int Tota
     public bool HasPrevious { get; init; } = Paging.Index > 0;
 
     /// <summary>True if there is a next page.</summary>
-    public bool HasNext { get; init; } = Paging.Index + 1 < TotalPages;
+    public bool HasNext { get; init; } = TotalPages > 0 && (long)Paging.Index + 1 < TotalPages;
 }
