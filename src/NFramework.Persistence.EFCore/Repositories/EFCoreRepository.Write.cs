@@ -75,7 +75,7 @@ public abstract partial class EFCoreRepository<TEntity, TId, TContext>
             return entities;
 
         await DbSet.AddRangeAsync(validEntities, cancellationToken).ConfigureAwait(false);
-        return entities;
+        return validEntities;
     }
 
     /// <inheritdoc />
@@ -88,10 +88,11 @@ public abstract partial class EFCoreRepository<TEntity, TId, TContext>
         var validEntities = entities.Where(e => e != null).ToList();
 
         if (validEntities.Count == 0)
-            return Task.FromResult(entities);
+            return Task.FromResult<ICollection<TEntity>>(validEntities);
 
         DbSet.UpdateRange(validEntities);
-        return Task.FromResult(entities);
+
+        return Task.FromResult<ICollection<TEntity>>(validEntities);
     }
 
     /// <inheritdoc />
@@ -104,10 +105,10 @@ public abstract partial class EFCoreRepository<TEntity, TId, TContext>
         var validEntities = entities.Where(e => e != null).ToList();
 
         if (validEntities.Count == 0)
-            return Task.FromResult(entities);
+            return Task.FromResult<ICollection<TEntity>>(validEntities);
 
         DbSet.RemoveRange(validEntities);
-        return Task.FromResult(entities);
+        return Task.FromResult<ICollection<TEntity>>(validEntities);
     }
 
     /// <inheritdoc />
