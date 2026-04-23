@@ -238,6 +238,11 @@ internal class TestDbContext(DbContextOptions<TestDbContext> options) : DbContex
     /// <summary>
     /// Creates a new InMemory TestDbContext with a unique database name.
     /// </summary>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage(
+        "Style",
+        "CA1849:Call async methods when in an async method",
+        Justification = "InMemory provider EnsureCreated is synchronous and fast"
+    )]
     public static TestDbContext Create()
     {
         DbContextOptions<TestDbContext> options = new DbContextOptionsBuilder<TestDbContext>()
@@ -246,6 +251,29 @@ internal class TestDbContext(DbContextOptions<TestDbContext> options) : DbContex
             .Options;
 
         TestDbContext context = new(options);
+        context.Database.EnsureCreated();
+        return context;
+    }
+
+    /// <summary>
+    /// Creates a new Sqlite TestDbContext.
+    /// </summary>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage(
+        "Reliability",
+        "CA2000:Dispose objects before losing scope",
+        Justification = "Connection is owned and disposed by the DbContext"
+    )]
+    public static TestDbContext CreateSqlite()
+    {
+        var connection = new Microsoft.Data.Sqlite.SqliteConnection("DataSource=:memory:");
+        connection.Open();
+
+        var options = new DbContextOptionsBuilder<TestDbContext>()
+            .UseSqlite(connection)
+            .AddInterceptors(new SoftDeletionInterceptor(), new AuditableInterceptor())
+            .Options;
+
+        var context = new TestDbContext(options);
         context.Database.EnsureCreated();
         return context;
     }

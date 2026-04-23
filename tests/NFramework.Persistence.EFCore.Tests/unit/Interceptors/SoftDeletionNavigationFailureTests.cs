@@ -1,5 +1,4 @@
-using Microsoft.Extensions.Logging;
-using Moq;
+using Microsoft.EntityFrameworkCore;
 using NFramework.Persistence.EFCore.Tests.Unit.Helpers;
 using Xunit;
 
@@ -8,30 +7,31 @@ namespace NFramework.Persistence.EFCore.Tests.Unit.Interceptors;
 public class SoftDeletionNavigationFailureTests
 {
     [Fact]
-    public async Task SavingChanges_WhenNavigationLoadingFails_ShouldLogAndContinues()
+    public async Task SavingChanges_WhenNavigationLoadingFails_ThrowsInvalidOperationExceptionWithContext()
     {
         // Arrange
-        // We need a context where navigation loading fails.
-        // This is hard to trigger naturally in InMemory, so we mock the DbContext
-        // OR we can just verify the code path by inspection, but let's try a partial mock if possible.
-        // Actually, the interceptor catches ANY exception during navigation loading.
+        using var context = TestDbContext.CreateSqlite();
+        var order = new TestOrder { Id = Guid.NewGuid(), OrderNumber = "FAIL-LOAD" };
+        var item = new TestOrderItem { Id = Guid.NewGuid(), Order = order };
 
-        using var context = TestDbContext.Create();
-        var order = new TestOrder { Id = Guid.NewGuid(), OrderNumber = "FAIL-1" };
         context.Orders.Add(order);
+        context.OrderItems.Add(item);
         await context.SaveChangesAsync();
 
-        // We want to force a failure during navigation loading.
-        // One way is to dispose the context before save, but that might crash earlier.
-        // Let's use a mock logger factory to verify logging.
+        // Clear tracker to force loading
+        context.ChangeTracker.Clear();
 
-        var mockLoggerFactory = new Mock<ILoggerFactory>();
-        var mockLogger = new Mock<ILogger>();
-        mockLoggerFactory.Setup(f => f.CreateLogger(It.IsAny<string>())).Returns(mockLogger.Object);
+        // Re-attach parent as deleted
+        var trackedOrder = context.Orders.Attach(order);
+        trackedOrder.State = EntityState.Deleted;
 
-        // We can't easily mock DbContext.Entry().Navigations in a way that throws without a lot of setup.
-        // But we already added the try-catch.
+        // Act & Assert
+        // We close the connection to force an exception during Load()
+        await context.Database.GetDbConnection().CloseAsync();
 
-        // Realistically, this test is more about verifying the logging logic.
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => context.SaveChangesAsync());
+
+        Assert.Contains("Failed to load navigation collection 'Items'", exception.Message, StringComparison.Ordinal);
+        Assert.Contains("TestOrder", exception.Message, StringComparison.Ordinal);
     }
 }

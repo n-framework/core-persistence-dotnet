@@ -43,10 +43,10 @@ internal sealed class SqliteTestDbContext : DbContext
     /// Creates a new SQLite-backed test context with an open in-memory connection.
     /// The connection remains open for the lifetime of the context to keep the database alive.
     /// </summary>
-    public static SqliteTestDbContext Create()
+    public static async Task<SqliteTestDbContext> CreateAsync()
     {
         SqliteConnection connection = new("DataSource=:memory:");
-        connection.Open();
+        await connection.OpenAsync();
 
         DbContextOptions<SqliteTestDbContext> options = new DbContextOptionsBuilder<SqliteTestDbContext>()
             .UseSqlite(connection)
@@ -54,7 +54,7 @@ internal sealed class SqliteTestDbContext : DbContext
             .Options;
 
         SqliteTestDbContext context = new(options, connection);
-        context.Database.EnsureCreated();
+        await context.Database.EnsureCreatedAsync();
         return context;
     }
 

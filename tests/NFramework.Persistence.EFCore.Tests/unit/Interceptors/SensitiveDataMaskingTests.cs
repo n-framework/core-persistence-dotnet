@@ -15,7 +15,7 @@ public sealed class SensitiveDataMaskingTests
     [Fact]
     public async Task SaveChanges_SensitiveProperty_IsMaskedInLog()
     {
-        using TestSensitiveDbContext context = TestSensitiveDbContext.Create();
+        using TestSensitiveDbContext context = await TestSensitiveDbContext.CreateAsync();
         SensitiveEntity entity = new()
         {
             Id = Guid.NewGuid(),
@@ -35,7 +35,7 @@ public sealed class SensitiveDataMaskingTests
     [Fact]
     public async Task SaveChanges_PartiallyMaskedProperty_KeepsVisibleChars()
     {
-        using TestSensitiveDbContext context = TestSensitiveDbContext.Create();
+        using TestSensitiveDbContext context = await TestSensitiveDbContext.CreateAsync();
         SensitiveEntity entity = new()
         {
             Id = Guid.NewGuid(),
@@ -54,7 +54,7 @@ public sealed class SensitiveDataMaskingTests
     [Fact]
     public async Task SaveChanges_ModifiedSensitiveProperty_MasksBothValues()
     {
-        using TestSensitiveDbContext context = TestSensitiveDbContext.Create();
+        using TestSensitiveDbContext context = await TestSensitiveDbContext.CreateAsync();
         SensitiveEntity entity = new()
         {
             Id = Guid.NewGuid(),
@@ -76,7 +76,7 @@ public sealed class SensitiveDataMaskingTests
     [Fact]
     public async Task SaveChanges_NonSensitiveProperty_IsLoggedInPlaintext()
     {
-        using TestSensitiveDbContext context = TestSensitiveDbContext.Create();
+        using TestSensitiveDbContext context = await TestSensitiveDbContext.CreateAsync();
         SensitiveEntity entity = new()
         {
             Id = Guid.NewGuid(),
@@ -89,6 +89,47 @@ public sealed class SensitiveDataMaskingTests
 
         string logOutput = context.CapturedLogOutput;
         Assert.Contains("Visible Name", logOutput, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task SaveChangesFailed_LogsErrorWithMaskedData()
+    {
+        // Arrange
+        using var connection = new Microsoft.Data.Sqlite.SqliteConnection("DataSource=:memory:");
+        await connection.OpenAsync();
+        CapturingLoggerProvider provider = new();
+        ILoggerFactory loggerFactory = LoggerFactory.Create(b =>
+            b.AddProvider(provider).SetMinimumLevel(LogLevel.Information)
+        );
+        var options = new DbContextOptionsBuilder<TestSensitiveDbContext>()
+            .UseSqlite(connection)
+            .AddInterceptors(new AuditLoggerInterceptor())
+            .UseLoggerFactory(loggerFactory)
+            .Options;
+
+        using TestSensitiveDbContext context = new(options, provider, loggerFactory);
+        await context.Database.EnsureCreatedAsync();
+
+        SensitiveEntity entity = new()
+        {
+            Id = Guid.NewGuid(),
+            Name = "Error Trigger",
+            Secret = "SensitiveFailure",
+        };
+
+        // Act
+        await context.Entities.AddAsync(entity);
+
+        // Break the connection to force failure
+        await connection.CloseAsync();
+
+        // Assert
+        await Assert.ThrowsAnyAsync<Exception>(() => context.SaveChangesAsync());
+
+        string logOutput = context.CapturedLogOutput;
+        Assert.Contains("SaveChanges failed for context", logOutput, StringComparison.Ordinal);
+        Assert.DoesNotContain("SensitiveFailure", logOutput, StringComparison.Ordinal);
+        Assert.Contains("************", logOutput, StringComparison.Ordinal);
     }
 }
 
@@ -109,7 +150,7 @@ internal sealed class TestSensitiveDbContext : DbContext
 
     public string CapturedLogOutput => _loggerProvider.GetOutput();
 
-    private TestSensitiveDbContext(
+    internal TestSensitiveDbContext(
         DbContextOptions<TestSensitiveDbContext> options,
         CapturingLoggerProvider provider,
         ILoggerFactory loggerFactory
@@ -138,7 +179,7 @@ internal sealed class TestSensitiveDbContext : DbContext
         base.Dispose();
     }
 
-    public static TestSensitiveDbContext Create()
+    public static async Task<TestSensitiveDbContext> CreateAsync()
     {
         CapturingLoggerProvider provider = new();
         ILoggerFactory loggerFactory = LoggerFactory.Create(b =>
@@ -151,7 +192,7 @@ internal sealed class TestSensitiveDbContext : DbContext
             .Options;
 
         TestSensitiveDbContext context = new(options, provider, loggerFactory);
-        context.Database.EnsureCreated();
+        await context.Database.EnsureCreatedAsync();
         return context;
     }
 }

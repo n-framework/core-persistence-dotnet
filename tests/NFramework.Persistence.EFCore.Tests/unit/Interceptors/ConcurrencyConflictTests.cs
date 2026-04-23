@@ -16,7 +16,7 @@ public class ConcurrencyConflictTests
     [Fact]
     public async Task UpdateAsync_WithStaleRowVersion_ShouldThrowConcurrencyConflictException()
     {
-        using SqliteTestDbContext context = SqliteTestDbContext.Create();
+        using SqliteTestDbContext context = await SqliteTestDbContext.CreateAsync();
         SqliteTestProductRepository repo = new(context);
 
         TestProduct product = new()
@@ -48,7 +48,7 @@ public class ConcurrencyConflictTests
     [Fact]
     public async Task UpsertAsync_WithStaleRowVersion_ShouldThrowConcurrencyConflictException()
     {
-        using SqliteTestDbContext context1 = SqliteTestDbContext.Create();
+        using SqliteTestDbContext context1 = await SqliteTestDbContext.CreateAsync();
         SqliteTestProductRepository repo1 = new(context1);
 
         TestProduct product = new()
@@ -92,7 +92,7 @@ public class ConcurrencyConflictTests
     [Fact]
     public async Task SaveChangesAsync_WithNoConcurrencyConflict_ShouldSucceed()
     {
-        using SqliteTestDbContext context = SqliteTestDbContext.Create();
+        using SqliteTestDbContext context = await SqliteTestDbContext.CreateAsync();
         SqliteTestProductRepository repo = new(context);
 
         TestProduct product = new()
@@ -111,7 +111,7 @@ public class ConcurrencyConflictTests
     [Fact]
     public async Task ConcurrencyConflictException_ShouldWrapOriginalException()
     {
-        using SqliteTestDbContext context = SqliteTestDbContext.Create();
+        using SqliteTestDbContext context = await SqliteTestDbContext.CreateAsync();
         SqliteTestProductRepository repo = new(context);
 
         TestProduct product = new()
@@ -145,7 +145,7 @@ public class ConcurrencyConflictTests
     [Fact]
     public async Task BulkUpdateAsync_WithStaleRowVersion_ShouldThrowConcurrencyConflictException()
     {
-        using SqliteTestDbContext context = SqliteTestDbContext.Create();
+        using SqliteTestDbContext context = await SqliteTestDbContext.CreateAsync();
         SqliteTestProductRepository repo = new(context);
 
         List<TestProduct> products =
@@ -186,7 +186,7 @@ public class ConcurrencyConflictTests
     [Fact]
     public async Task DeleteAsync_WithStaleRowVersion_ShouldThrowConcurrencyConflictException()
     {
-        using SqliteTestDbContext context = SqliteTestDbContext.Create();
+        using SqliteTestDbContext context = await SqliteTestDbContext.CreateAsync();
         SqliteTestProductRepository repo = new(context);
 
         TestProduct product = new()
@@ -216,7 +216,7 @@ public class ConcurrencyConflictTests
     [Fact]
     public async Task BulkDeleteAsync_WithStaleRowVersion_ShouldThrowConcurrencyConflictException()
     {
-        using SqliteTestDbContext context = SqliteTestDbContext.Create();
+        using SqliteTestDbContext context = await SqliteTestDbContext.CreateAsync();
         SqliteTestProductRepository repo = new(context);
 
         List<TestProduct> products =

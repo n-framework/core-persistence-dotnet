@@ -13,7 +13,7 @@ public sealed class SoftDeleteManyToManyTests
     [Fact]
     public async Task DeleteAsync_ParentWithManyToMany_DoesNotCascadeToTarget()
     {
-        // Arrange - MM-01
+        // Arrange
         using TestDbContext context = TestDbContext.Create();
         TestRole adminRole = new() { Id = Guid.NewGuid(), Name = "Admin" };
         TestUser user1 = new() { Id = Guid.NewGuid(), Name = "Alice" };
