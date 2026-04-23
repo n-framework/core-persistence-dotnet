@@ -6,7 +6,7 @@ using Xunit;
 namespace NFramework.Persistence.EFCore.Tests.Unit.Interceptors;
 
 /// <summary>
-/// Tests for state changes and timestamp behavior via the <see cref="AuditSaveChangesInterceptor"/>.
+/// Tests for state changes and timestamp behavior via the <see cref="SoftDeletionInterceptor"/> and <see cref="AuditableInterceptor"/>.
 /// </summary>
 public sealed class SoftDeleteStateTests
 {

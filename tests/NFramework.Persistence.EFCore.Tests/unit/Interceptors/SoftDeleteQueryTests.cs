@@ -6,7 +6,7 @@ using Xunit;
 namespace NFramework.Persistence.EFCore.Tests.Unit.Interceptors;
 
 /// <summary>
-/// Tests for soft delete querying and filtering logic via the <see cref="AuditSaveChangesInterceptor"/>.
+/// Tests for soft delete querying and filtering logic via the <see cref="SoftDeletionInterceptor"/>.
 /// </summary>
 public sealed class SoftDeleteQueryTests
 {
