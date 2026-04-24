@@ -38,9 +38,7 @@ public class Filter : IValidatableObject
         set
         {
             if (string.IsNullOrWhiteSpace(value))
-            {
                 throw new ArgumentException("Field name cannot be empty.", nameof(value));
-            }
 
             field = value;
         }
@@ -71,7 +69,14 @@ public class Filter : IValidatableObject
     /// <summary>
     /// Validates the filter state.
     /// </summary>
-    public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+    public IEnumerable<ValidationResult> Validate(ValidationContext validationContext) => validateInternal();
+
+    /// <summary>
+    /// Performs internal recursive validation.
+    /// This helper is separated from the public Validate method to ensure Native AOT compatibility
+    /// and to manage recursive validation of nested filters without reflection-heavy ValidationContext issues.
+    /// </summary>
+    private IEnumerable<ValidationResult> validateInternal()
     {
         if (string.IsNullOrWhiteSpace(Field) && !Logic.HasValue)
         {
@@ -86,21 +91,15 @@ public class Filter : IValidatableObject
             if (Operator is FilterOperator.IsNull or FilterOperator.IsNotNull)
             {
                 if (Value != null)
-                {
                     yield return new ValidationResult($"Operator {Operator} does not expect a value.", [nameof(Value)]);
-                }
             }
             else if (Value == null)
-            {
                 yield return new ValidationResult($"Operator {Operator} requires a comparison value.", [nameof(Value)]);
-            }
             else if (Operator == FilterOperator.In && Value is not System.Collections.IEnumerable)
-            {
                 yield return new ValidationResult(
                     $"Operator {Operator} requires an IEnumerable value.",
                     [nameof(Value)]
                 );
-            }
         }
 
         if (Logic.HasValue && (Filters == null || Filters.Count == 0))
@@ -123,8 +122,7 @@ public class Filter : IValidatableObject
         {
             foreach (var filter in Filters)
             {
-                ValidationContext childContext = new(filter);
-                foreach (var result in filter.Validate(childContext))
+                foreach (var result in filter.validateInternal())
                 {
                     yield return result;
                 }

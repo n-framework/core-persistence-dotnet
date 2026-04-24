@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 
@@ -12,26 +13,15 @@ public static class DatabaseFacadeExtensions
     {
         /// <summary>
         /// Ensures the database is created properly based on the provider type.
-        /// For relational databases, attempts to apply pending migrations first;
-        /// falls back to EnsureCreated if no migrations are configured.
-        /// For non-relational providers (e.g. InMemory), uses EnsureCreated.
         /// </summary>
-        public DatabaseFacade EnsureDatabaseCreated()
+        [RequiresDynamicCode("Database creation and migrations are not supported with Native AOT.")]
+        [RequiresUnreferencedCode("Database creation and migrations are not supported with Native AOT.")]
+        public async Task MigrateDatabaseAsync()
         {
-            ArgumentNullException.ThrowIfNull(databaseFacade);
-            if (databaseFacade.IsRelational())
-            {
-                if (databaseFacade.GetPendingMigrations().Any())
-                    databaseFacade.Migrate();
-                else
-                    _ = databaseFacade.EnsureCreated();
-            }
+            if (databaseFacade.IsRelational() && databaseFacade.GetMigrations().Any())
+                await databaseFacade.MigrateAsync().ConfigureAwait(false);
             else
-            {
-                _ = databaseFacade.EnsureCreated();
-            }
-
-            return databaseFacade;
+                _ = await databaseFacade.EnsureCreatedAsync().ConfigureAwait(false);
         }
     }
 }

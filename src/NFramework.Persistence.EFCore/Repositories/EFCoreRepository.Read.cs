@@ -35,7 +35,7 @@ public abstract partial class EFCoreRepository<TEntity, TId, TContext>
     )
     {
         IQueryable<TEntity> query = buildQuery(options);
-        return await query.ToListAsync(cancellationToken).ConfigureAwait(false);
+        return await ExecuteWithLimitAsync(query, cancellationToken).ConfigureAwait(false);
     }
 
     /// <inheritdoc />

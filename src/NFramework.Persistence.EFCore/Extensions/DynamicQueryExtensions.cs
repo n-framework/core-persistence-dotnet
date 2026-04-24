@@ -21,6 +21,9 @@ public static partial class DynamicQueryExtensions
         /// <summary>
         /// Applies a collection of <see cref="Filter"/> descriptors to the query.
         /// </summary>
+        [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(
+            "Dynamic query translation uses reflection-based System.Linq.Dynamic.Core which is not fully trim-safe."
+        )]
         public IQueryable<T> ApplyFilters(IReadOnlyCollection<Filter>? filters)
         {
             if (filters == null || filters.Count == 0)
@@ -55,6 +58,9 @@ public static partial class DynamicQueryExtensions
         }
     }
 
+    [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(
+        "Dynamic query translation uses reflection-based System.Linq.Dynamic.Core which is not fully trim-safe."
+    )]
     private static IQueryable<T> ApplySingleFilter<T>(this IQueryable<T> source, Filter filter)
         where T : class
     {
@@ -65,6 +71,9 @@ public static partial class DynamicQueryExtensions
         return source.Where(expression, args);
     }
 
+    [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(
+        "Dynamic query translation uses reflection-based System.Linq.Dynamic.Core which is not fully trim-safe."
+    )]
     private static IQueryable<T> ApplyLogicGroup<T>(IQueryable<T> source, Filter group)
         where T : class
     {
@@ -86,13 +95,17 @@ public static partial class DynamicQueryExtensions
         return source.Where(combined, [.. allArgs]);
     }
 
+    [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(
+        "Dynamic query translation uses reflection-based System.Linq.Dynamic.Core which is not fully trim-safe."
+    )]
     private static (string Expression, object?[] Args) BuildFilterExpression(Filter filter, int paramOffset = 0)
     {
-        System.ComponentModel.DataAnnotations.Validator.ValidateObject(
-            filter,
-            new System.ComponentModel.DataAnnotations.ValidationContext(filter),
-            true
-        );
+        var results = filter.Validate(null!);
+        foreach (var result in results)
+        {
+            if (result != System.ComponentModel.DataAnnotations.ValidationResult.Success)
+                throw new System.ComponentModel.DataAnnotations.ValidationException(result, null, filter);
+        }
 
         string fieldName = filter.Field;
         if (string.IsNullOrWhiteSpace(fieldName) || !FieldNameRegex.IsMatch(fieldName))

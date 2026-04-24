@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using NFramework.Persistence.Abstractions.Entities;
@@ -11,7 +12,19 @@ namespace NFramework.Persistence.EFCore.Extensions;
 /// </summary>
 public static class ModelBuilderExtensions
 {
-    extension<TEntity, TId>(EntityTypeBuilder<TEntity> builder)
+    extension<
+        [DynamicallyAccessedMembers(
+            DynamicallyAccessedMemberTypes.PublicConstructors
+                | DynamicallyAccessedMemberTypes.NonPublicConstructors
+                | DynamicallyAccessedMemberTypes.PublicFields
+                | DynamicallyAccessedMemberTypes.NonPublicFields
+                | DynamicallyAccessedMemberTypes.PublicProperties
+                | DynamicallyAccessedMemberTypes.NonPublicProperties
+                | DynamicallyAccessedMemberTypes.Interfaces
+        )]
+            TEntity,
+        TId
+    >(EntityTypeBuilder<TEntity> builder)
         where TEntity : Entity<TId>
         where TId : IEquatable<TId>
     {
@@ -29,7 +42,19 @@ public static class ModelBuilderExtensions
         }
     }
 
-    extension<TEntity, TId>(EntityTypeBuilder<TEntity> builder)
+    extension<
+        [DynamicallyAccessedMembers(
+            DynamicallyAccessedMemberTypes.PublicConstructors
+                | DynamicallyAccessedMemberTypes.NonPublicConstructors
+                | DynamicallyAccessedMemberTypes.PublicFields
+                | DynamicallyAccessedMemberTypes.NonPublicFields
+                | DynamicallyAccessedMemberTypes.PublicProperties
+                | DynamicallyAccessedMemberTypes.NonPublicProperties
+                | DynamicallyAccessedMemberTypes.Interfaces
+        )]
+            TEntity,
+        TId
+    >(EntityTypeBuilder<TEntity> builder)
         where TEntity : AuditableEntity<TId>
         where TId : IEquatable<TId>
     {
@@ -47,7 +72,19 @@ public static class ModelBuilderExtensions
         }
     }
 
-    extension<TEntity, TId>(EntityTypeBuilder<TEntity> builder)
+    extension<
+        [DynamicallyAccessedMembers(
+            DynamicallyAccessedMemberTypes.PublicConstructors
+                | DynamicallyAccessedMemberTypes.NonPublicConstructors
+                | DynamicallyAccessedMemberTypes.PublicFields
+                | DynamicallyAccessedMemberTypes.NonPublicFields
+                | DynamicallyAccessedMemberTypes.PublicProperties
+                | DynamicallyAccessedMemberTypes.NonPublicProperties
+                | DynamicallyAccessedMemberTypes.Interfaces
+        )]
+            TEntity,
+        TId
+    >(EntityTypeBuilder<TEntity> builder)
         where TEntity : SoftDeletableEntity<TId>
         where TId : IEquatable<TId>
     {

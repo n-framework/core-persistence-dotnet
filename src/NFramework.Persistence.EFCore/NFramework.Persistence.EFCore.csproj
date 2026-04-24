@@ -4,6 +4,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <LangVersion>latest</LangVersion>
+    <IsTrimmable>true</IsTrimmable>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -14,13 +15,17 @@
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <Deterministic>true</Deterministic>
   </PropertyGroup>
-
   <PropertyGroup>
     <PackageId>NFramework.Persistence.EFCore</PackageId>
     <Version>1.0.0</Version>
+    <Authors>NFramework Contributors</Authors>
+    <Company>NFramework</Company>
     <Title>NFramework Persistence EF Core Implementation</Title>
     <Description>Entity Framework Core implementation of NFramework persistence abstractions. Provides repository base classes, dynamic query translation, pagination, and audit interceptors.</Description>
     <PackageTags>persistence;efcore;repository-pattern;clean-architecture</PackageTags>
+    <PackageProjectUrl>https://github.com/n-framework/n-framework</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/n-framework/n-framework</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
   </PropertyGroup>
 
   <ItemGroup>
@@ -29,6 +34,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="11.0.0-preview.3.26207.106" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="11.0.0-preview.3.26207.106" />
     <PackageReference Include="System.Linq.Dynamic.Core" Version="1.7.2" />
   </ItemGroup>
 
