@@ -18,12 +18,7 @@ public class ConcurrencyConflictTests
         using SqliteTestDbContext context = await SqliteTestDbContext.CreateAsync();
         SqliteTestProductRepository repo = new(context);
 
-        TestProduct product = new()
-        {
-            Id = Guid.NewGuid(),
-            Name = "Original",
-            Price = 10.00m,
-        };
+        TestProduct product = new(Guid.NewGuid()) { Name = "Original", Price = 10.00m };
 
         await repo.AddAsync(product);
         await repo.SaveChangesAsync();
@@ -50,12 +45,7 @@ public class ConcurrencyConflictTests
         using SqliteTestDbContext context1 = await SqliteTestDbContext.CreateAsync();
         SqliteTestProductRepository repo1 = new(context1);
 
-        TestProduct product = new()
-        {
-            Id = Guid.NewGuid(),
-            Name = "Original",
-            Price = 10.00m,
-        };
+        TestProduct product = new(Guid.NewGuid()) { Name = "Original", Price = 10.00m };
 
         await repo1.AddAsync(product);
         await repo1.SaveChangesAsync();
@@ -72,9 +62,8 @@ public class ConcurrencyConflictTests
         context1.Entry(product).State = EntityState.Detached;
 
         // Create a stale copy with the old RowVersion
-        TestProduct staleEntity = new()
+        TestProduct staleEntity = new(product.Id)
         {
-            Id = product.Id,
             Name = "MyUpsert",
             Price = 20.00m,
             RowVersion = originalRowVersion,
@@ -94,12 +83,7 @@ public class ConcurrencyConflictTests
         using SqliteTestDbContext context = await SqliteTestDbContext.CreateAsync();
         SqliteTestProductRepository repo = new(context);
 
-        TestProduct product = new()
-        {
-            Id = Guid.NewGuid(),
-            Name = "TestProduct",
-            Price = 5.00m,
-        };
+        TestProduct product = new(Guid.NewGuid()) { Name = "TestProduct", Price = 5.00m };
 
         await repo.AddAsync(product);
         int result = await repo.SaveChangesAsync();
@@ -113,12 +97,7 @@ public class ConcurrencyConflictTests
         using SqliteTestDbContext context = await SqliteTestDbContext.CreateAsync();
         SqliteTestProductRepository repo = new(context);
 
-        TestProduct product = new()
-        {
-            Id = Guid.NewGuid(),
-            Name = "Original",
-            Price = 10.00m,
-        };
+        TestProduct product = new(Guid.NewGuid()) { Name = "Original", Price = 10.00m };
 
         await repo.AddAsync(product);
         await repo.SaveChangesAsync();
@@ -149,18 +128,8 @@ public class ConcurrencyConflictTests
 
         List<TestProduct> products =
         [
-            new()
-            {
-                Id = Guid.NewGuid(),
-                Name = "Bulk1",
-                Price = 10.00m,
-            },
-            new()
-            {
-                Id = Guid.NewGuid(),
-                Name = "Bulk2",
-                Price = 20.00m,
-            },
+            new(Guid.NewGuid()) { Name = "Bulk1", Price = 10.00m },
+            new(Guid.NewGuid()) { Name = "Bulk2", Price = 20.00m },
         ];
 
         await repo.BulkAddAsync(products);
@@ -188,12 +157,7 @@ public class ConcurrencyConflictTests
         using SqliteTestDbContext context = await SqliteTestDbContext.CreateAsync();
         SqliteTestProductRepository repo = new(context);
 
-        TestProduct product = new()
-        {
-            Id = Guid.NewGuid(),
-            Name = "Original",
-            Price = 10.00m,
-        };
+        TestProduct product = new(Guid.NewGuid()) { Name = "Original", Price = 10.00m };
 
         await repo.AddAsync(product);
         await repo.SaveChangesAsync();
@@ -220,18 +184,8 @@ public class ConcurrencyConflictTests
 
         List<TestProduct> products =
         [
-            new()
-            {
-                Id = Guid.NewGuid(),
-                Name = "Bulk1",
-                Price = 10.00m,
-            },
-            new()
-            {
-                Id = Guid.NewGuid(),
-                Name = "Bulk2",
-                Price = 20.00m,
-            },
+            new(Guid.NewGuid()) { Name = "Bulk1", Price = 10.00m },
+            new(Guid.NewGuid()) { Name = "Bulk2", Price = 20.00m },
         ];
 
         await repo.BulkAddAsync(products);

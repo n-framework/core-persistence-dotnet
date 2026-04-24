@@ -34,12 +34,7 @@ public class BulkOperationEdgeCaseTests
         var repo = new TestProductRepository(context);
         var products = Enumerable
             .Range(1, 100)
-            .Select(i => new TestProduct
-            {
-                Id = Guid.NewGuid(),
-                Name = $"Product {i}",
-                Price = i,
-            })
+            .Select(i => new TestProduct(Guid.NewGuid()) { Name = $"Product {i}", Price = i })
             .ToList();
 
         var result = await repo.BulkAddAsync(products);
@@ -56,12 +51,7 @@ public class BulkOperationEdgeCaseTests
         var repo = new TestProductRepository(context);
         var products = Enumerable
             .Range(1, 1000)
-            .Select(i => new TestProduct
-            {
-                Id = Guid.NewGuid(),
-                Name = $"Product {i}",
-                Price = i,
-            })
+            .Select(i => new TestProduct(Guid.NewGuid()) { Name = $"Product {i}", Price = i })
             .ToList();
 
         var result = await repo.BulkAddAsync(products);
@@ -76,12 +66,7 @@ public class BulkOperationEdgeCaseTests
     {
         using var context = TestDbContext.Create();
         var repo = new TestProductRepository(context);
-        var p1 = new TestProduct
-        {
-            Id = Guid.NewGuid(),
-            Name = "Valid",
-            Price = 10,
-        };
+        var p1 = new TestProduct(Guid.NewGuid()) { Name = "Valid", Price = 10 };
         await repo.AddAsync(p1);
         await repo.SaveChangesAsync();
 

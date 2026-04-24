@@ -16,12 +16,7 @@ public sealed class SensitiveDataMaskingTests
     public async Task SaveChanges_SensitiveProperty_IsMaskedInLog()
     {
         using TestSensitiveDbContext context = await TestSensitiveDbContext.CreateAsync();
-        SensitiveEntity entity = new()
-        {
-            Id = Guid.NewGuid(),
-            Name = "Public Name",
-            Secret = "TopSecret123",
-        };
+        SensitiveEntity entity = new() { Name = "Public Name", Secret = "TopSecret123" };
 
         await context.Entities.AddAsync(entity);
         _ = await context.SaveChangesAsync();
@@ -36,12 +31,7 @@ public sealed class SensitiveDataMaskingTests
     public async Task SaveChanges_PartiallyMaskedProperty_KeepsVisibleChars()
     {
         using TestSensitiveDbContext context = await TestSensitiveDbContext.CreateAsync();
-        SensitiveEntity entity = new()
-        {
-            Id = Guid.NewGuid(),
-            Name = "User",
-            PartialSecret = "john@example.com",
-        };
+        SensitiveEntity entity = new() { Name = "User", PartialSecret = "john@example.com" };
 
         await context.Entities.AddAsync(entity);
         _ = await context.SaveChangesAsync();
@@ -55,12 +45,7 @@ public sealed class SensitiveDataMaskingTests
     public async Task SaveChanges_ModifiedSensitiveProperty_MasksBothValues()
     {
         using TestSensitiveDbContext context = await TestSensitiveDbContext.CreateAsync();
-        SensitiveEntity entity = new()
-        {
-            Id = Guid.NewGuid(),
-            Name = "User",
-            Secret = "OldSecret",
-        };
+        SensitiveEntity entity = new() { Name = "User", Secret = "OldSecret" };
 
         await context.Entities.AddAsync(entity);
         _ = await context.SaveChangesAsync();
@@ -77,12 +62,7 @@ public sealed class SensitiveDataMaskingTests
     public async Task SaveChanges_NonSensitiveProperty_IsLoggedInPlaintext()
     {
         using TestSensitiveDbContext context = await TestSensitiveDbContext.CreateAsync();
-        SensitiveEntity entity = new()
-        {
-            Id = Guid.NewGuid(),
-            Name = "Visible Name",
-            Secret = "hidden",
-        };
+        SensitiveEntity entity = new() { Name = "Visible Name", Secret = "hidden" };
 
         await context.Entities.AddAsync(entity);
         _ = await context.SaveChangesAsync();
@@ -110,12 +90,7 @@ public sealed class SensitiveDataMaskingTests
         using TestSensitiveDbContext context = new(options, provider, loggerFactory);
         await context.Database.EnsureCreatedAsync();
 
-        SensitiveEntity entity = new()
-        {
-            Id = Guid.NewGuid(),
-            Name = "Error Trigger",
-            Secret = "SensitiveFailure",
-        };
+        SensitiveEntity entity = new() { Name = "Error Trigger", Secret = "SensitiveFailure" };
 
         // Act
         await context.Entities.AddAsync(entity);

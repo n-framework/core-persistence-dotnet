@@ -14,7 +14,7 @@ public class TrackingTests
         TestProductRepository repo = new(context);
         Guid id = Guid.NewGuid();
         await repo.AddAsync(
-            new TestProduct
+            new TestProduct(Guid.NewGuid())
             {
                 Id = id,
                 Name = "P1",
@@ -37,7 +37,7 @@ public class TrackingTests
         TestProductRepository repo = new(context);
         Guid id = Guid.NewGuid();
         await repo.AddAsync(
-            new TestProduct
+            new TestProduct(Guid.NewGuid())
             {
                 Id = id,
                 Name = "P1",
@@ -61,7 +61,7 @@ public class TrackingTests
         TestProductRepository repo = new(context);
         Guid id = Guid.NewGuid();
         await repo.AddAsync(
-            new TestProduct
+            new TestProduct(Guid.NewGuid())
             {
                 Id = id,
                 Name = "P1",
@@ -86,7 +86,7 @@ public class TrackingTests
         TestProductRepository repo = new(context);
         Guid id = Guid.NewGuid();
         await repo.AddAsync(
-            new TestProduct
+            new TestProduct(Guid.NewGuid())
             {
                 Id = id,
                 Name = "P1",
@@ -109,7 +109,7 @@ public class TrackingTests
         TestProductRepository repo = new(context);
         Guid id = Guid.NewGuid();
         await repo.AddAsync(
-            new TestProduct
+            new TestProduct(Guid.NewGuid())
             {
                 Id = id,
                 Name = "P1",

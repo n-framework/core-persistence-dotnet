@@ -25,14 +25,7 @@ public class TransactionTests
 
             await repo.BeginTransactionAsync();
 
-            await repo.AddAsync(
-                new TestProduct
-                {
-                    Id = Guid.NewGuid(),
-                    Name = "TxProduct",
-                    Price = 1.0m,
-                }
-            );
+            await repo.AddAsync(new TestProduct(Guid.NewGuid()) { Name = "TxProduct", Price = 1.0m });
             await repo.SaveChangesAsync();
 
             await repo.CommitTransactionAsync();
@@ -62,14 +55,7 @@ public class TransactionTests
 
             await repo.BeginTransactionAsync();
 
-            await repo.AddAsync(
-                new TestProduct
-                {
-                    Id = Guid.NewGuid(),
-                    Name = "TxProduct",
-                    Price = 1.0m,
-                }
-            );
+            await repo.AddAsync(new TestProduct(Guid.NewGuid()) { Name = "TxProduct", Price = 1.0m });
             await repo.SaveChangesAsync();
 
             await repo.RollbackTransactionAsync();
