@@ -5,12 +5,16 @@ namespace NFramework.Persistence.Abstractions.Tests.Entities;
 
 public partial class SoftDeletableEntityTests
 {
-    private sealed class TestSoftDeletableEntity : SoftDeletableEntity<int>;
+    private sealed class TestSoftDeletableEntity(int id) : SoftDeletableEntity<int>(id)
+    {
+        public TestSoftDeletableEntity()
+            : this(1) { }
+    }
 
     [Fact]
     public void SoftDeletableEntity_ShouldInheritFromAuditable()
     {
-        var entity = new TestSoftDeletableEntity();
+        var entity = new TestSoftDeletableEntity(1);
         entity.ShouldBeAssignableTo<AuditableEntity<int>>();
         entity.ShouldBeAssignableTo<Entity<int>>();
     }
@@ -18,7 +22,7 @@ public partial class SoftDeletableEntityTests
     [Fact]
     public void SoftDeletableEntity_DefaultValues_ShouldNotBeDeleted()
     {
-        var entity = new TestSoftDeletableEntity();
+        var entity = new TestSoftDeletableEntity(1);
         entity.IsDeleted.ShouldBeFalse();
         entity.DeletedAt.ShouldBeNull();
     }
@@ -27,7 +31,7 @@ public partial class SoftDeletableEntityTests
     public void SoftDeletableEntity_CanMarkAsDeleted()
     {
         var now = DateTime.UtcNow;
-        var entity = new TestSoftDeletableEntity { IsDeleted = true, DeletedAt = now };
+        var entity = new TestSoftDeletableEntity(1) { IsDeleted = true, DeletedAt = now };
         entity.IsDeleted.ShouldBeTrue();
         entity.DeletedAt.ShouldBe(now);
     }
@@ -35,7 +39,7 @@ public partial class SoftDeletableEntityTests
     [Fact]
     public void SoftDeletableEntity_SettingIsDeletedTrue_ShouldSetDeletedAt()
     {
-        var entity = new TestSoftDeletableEntity { IsDeleted = true };
+        var entity = new TestSoftDeletableEntity(1) { IsDeleted = true };
 
         entity.IsDeleted.ShouldBeTrue();
         entity.DeletedAt.ShouldNotBeNull();
@@ -44,7 +48,7 @@ public partial class SoftDeletableEntityTests
     [Fact]
     public void SoftDeletableEntity_SettingIsDeletedFalse_ShouldClearDeletedAt()
     {
-        var entity = new TestSoftDeletableEntity { IsDeleted = true, DeletedAt = DateTime.UtcNow };
+        var entity = new TestSoftDeletableEntity(1) { IsDeleted = true, DeletedAt = DateTime.UtcNow };
 
         entity.IsDeleted = false;
 
@@ -55,7 +59,7 @@ public partial class SoftDeletableEntityTests
     [Fact]
     public void SoftDeletableEntity_SettingDeletedAt_ShouldUpdateIsDeleted()
     {
-        var entity = new TestSoftDeletableEntity { DeletedAt = DateTime.UtcNow };
+        var entity = new TestSoftDeletableEntity(1) { DeletedAt = DateTime.UtcNow };
 
         entity.IsDeleted.ShouldBeTrue();
         entity.DeletedAt.ShouldNotBeNull();
@@ -69,7 +73,7 @@ public partial class SoftDeletableEntityTests
     [Fact]
     public void SoftDeletableEntity_ConcurrentUpdates_ShouldNotThrowExceptionsOrDeadlock()
     {
-        var entity = new TestSoftDeletableEntity();
+        var entity = new TestSoftDeletableEntity(1);
         var exceptions = new System.Collections.Concurrent.ConcurrentBag<Exception>();
 
         Parallel.For(

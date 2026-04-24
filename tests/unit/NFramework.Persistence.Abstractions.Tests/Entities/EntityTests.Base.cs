@@ -5,19 +5,22 @@ namespace NFramework.Persistence.Abstractions.Tests.Entities;
 
 public class EntityTests
 {
-    private sealed class TestEntity : Entity<Guid>;
+    private sealed class TestEntity(Guid id) : Entity<Guid>(id)
+    {
+        public TestEntity()
+            : this(Guid.Empty) { }
+    }
 
     [Fact]
-    public void Entity_DefaultId_ShouldBeDefault()
+    public void Entity_DefaultId_ShouldThrowArgumentException()
     {
-        var entity = new TestEntity();
-        entity.Id.ShouldBe(Guid.Empty);
+        Should.Throw<ArgumentException>(() => new TestEntity(Guid.Empty));
     }
 
     [Fact]
     public void Entity_RowVersion_ShouldBeEmpty()
     {
-        var entity = new TestEntity();
+        var entity = new TestEntity(Guid.NewGuid());
         entity.RowVersion.ShouldBeEmpty();
     }
 
@@ -25,16 +28,16 @@ public class EntityTests
     public void Entity_CanSetId()
     {
         var id = Guid.NewGuid();
-        var entity = new TestEntity { Id = id };
+        var entity = new TestEntity(id);
         entity.Id.ShouldBe(id);
     }
 
     [Fact]
     public void Entity_ValueTypeTId_IntIds()
     {
-        var entity = new IntEntity { Id = 42 };
+        var entity = new IntEntity(42);
         entity.Id.ShouldBe(42);
     }
 
-    private sealed class IntEntity : Entity<int>;
+    private sealed class IntEntity(int id) : Entity<int>(id);
 }

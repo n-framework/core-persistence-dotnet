@@ -11,7 +11,7 @@ public class InMemoryDatabaseExampleTests
     {
         // Arrange
         using var context = TestDbContextFactory.CreateInMemory();
-        var product = new TestProduct { Name = "Fast Test Product" };
+        var product = new TestProduct(Guid.NewGuid()) { Name = "Fast Test Product" };
 
         // Act
         context.Products.Add(product);

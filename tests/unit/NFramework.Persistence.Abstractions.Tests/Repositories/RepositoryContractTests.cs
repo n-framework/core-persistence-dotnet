@@ -10,7 +10,7 @@ public class RepositoryContractTests
     public void IReadRepository_ShouldDefineStandardMethods()
     {
         var type = typeof(IReadRepository<TestEntity, Guid>);
-        _ = new TestEntity(); // Instantiated to resolve CA1812
+        _ = new TestEntity(Guid.NewGuid()); // Instantiated to resolve CA1812
 
         type.GetMethod("GetByIdAsync").ShouldNotBeNull();
         type.GetMethod("GetAllAsync").ShouldNotBeNull();
@@ -43,5 +43,5 @@ public class RepositoryContractTests
         type.GetMethod("GetListByDynamicAsync").ShouldNotBeNull();
     }
 
-    private sealed class TestEntity : Entity<Guid>;
+    private sealed class TestEntity(Guid id) : Entity<Guid>(id);
 }

@@ -8,6 +8,18 @@ namespace NFramework.Persistence.Abstractions.Entities;
 public abstract class SoftDeletableEntity<TId> : AuditableEntity<TId>, ISoftDeletableEntity
     where TId : IEquatable<TId>
 {
+    protected SoftDeletableEntity(TId id)
+        : base(id) { }
+
+    [System.Diagnostics.CodeAnalysis.SuppressMessage(
+        "Style",
+        "S1133:Do not forget to remove this deprecated code someday.",
+        Justification = "Necessary for ORM parameterless constructor requirement."
+    )]
+    [Obsolete("Use constructor with ID instead. This is only for ORM use.")]
+    protected SoftDeletableEntity()
+        : base() { }
+
     private int _isSyncing;
 
     /// <summary>
