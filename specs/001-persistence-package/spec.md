@@ -2,19 +2,19 @@
 
 ## User Scenarios & Testing
 
-### User Story 1 - Create Repository with Standard CRUD Operations (Priority: P1)
+### User Story 1 - Create and Register Repositories (Priority: P1)
 
-As an application developer, I want to define repository interfaces and have them automatically registered with dependency injection so that I can perform database operations without manual service registration.
+As an application developer, I want to define repository interfaces and register them explicitly in my dependency injection configuration so that I can perform database operations with full control over my service graph.
 
-**Why this priority**: This is the foundation that everything else builds on. Without automatic DI registration, developers can't use repositories in their applications at all.
+**Why this priority**: Repositories are the primary entry point for data access. Explicit registration ensures total transparency and avoids "magic" behavior that can complicate debugging and Native AOT compilation.
 
-**Independent Test**: Create a repository interface and verify it's registered in the DI container with the correct lifetime and implementation type.
+**Independent Test**: Create a repository interface and implementation, register it in the DI container, and verify it can be resolved and used for data access.
 
 **Acceptance Scenarios**:
 
-1. **Given** a repository interface inheriting from `IAsyncRepository<TEntity, TId>`, **When** the application starts, **Then** the repository implementation is automatically registered in the DI container.
-2. **Given** multiple repository interfaces across different assemblies, **When** the application builds, **Then** all repositories are discovered and registered correctly.
-3. **Given** a repository with generic type parameters, **When** the source generator processes the code, **Then** registration code is emitted without requiring manual setup.
+1. **Given** a repository interface inheriting from `IAsyncRepository<TEntity, TId>`, **When** registered in the DI container, **Then** it can be injected into high-level services.
+2. **Given** a repository implementation, **When** registered as Scoped, **Then** it correctly shares the DbContext lifetime within the same scope.
+3. **Given** a Native AOT build, **When** the application is compiled, **Then** the explicit registrations work without runtime reflection.
 
 ---
 
@@ -145,7 +145,7 @@ As an application developer, I want the persistence package to work with Native 
 **Acceptance Scenarios**:
 
 1. **Given** an application using the persistence package, **When** published with Native AOT, **Then** it compiles successfully.
-2. **Given** the source generator, **When** it generates code, **Then** the generated code works with AOT compilation.
+2. **Given** explicit DI registrations, **When** the application is published with Native AOT, **Then** the service graph is resolved correctly without reflection trimming warnings.
 3. **Given** an AOT-compiled application, **When** it runs, **Then** all persistence operations work normally.
 
 ---
@@ -262,16 +262,6 @@ Things that can go wrong and how the system should handle them:
 - **FR-052**: Handle relational databases by applying pending migrations
 - **FR-053**: Check database connectivity before attempting migration
 
-#### Source Generator for Dependency Injection
-
-- **FR-054**: Discover repository interfaces automatically during compilation
-- **FR-055**: Generate dependency injection registration code for discovered repositories
-- **FR-056**: Register repositories with scoped lifetime (appropriate for database contexts)
-- **FR-057**: Generate helpful diagnostics when configuration is incorrect
-- **FR-058**: Ensure generated code works with Native AOT compilation
-- **FR-059**: Support projects with multiple database context types
-- **FR-060**: Handle generic repository definitions correctly
-
 #### Testing Support
 
 - **FR-061**: Work with EF Core's in-memory database provider for unit testing
@@ -322,13 +312,12 @@ Things that can go wrong and how the system should handle them:
 ### Measurable Outcomes
 
 - **SC-001**: Applications compile without warnings when published with Native AOT
-- **SC-002**: Source generator completes in under 1 second for typical projects
 - **SC-003**: Single-entity operations complete in under 10 milliseconds
 - **SC-004**: Pagination queries on 1000 records complete in under 100 milliseconds
 - **SC-005**: Unit tests using in-memory database run in under 100 milliseconds each
 - **SC-006**: Bulk operations process 1000 entities in under 5 seconds
 - **SC-007**: Integration tests achieve 90% code coverage
-- **SC-008**: Generated DI registration code matches expected output in all scenarios
+- **SC-008**: All repository registrations follow standard .NET DI patterns for Native AOT compatibility
 - **SC-009**: Abstractions package has zero external dependencies
 - **SC-010**: All public APIs include XML documentation comments
 - **SC-011**: CI pipeline validates AOT compatibility on every commit
@@ -340,7 +329,7 @@ Things that can go wrong and how the system should handle them:
 - Entity Framework Core 9.0 or later is used for data access
 - Applications use the standard dependency injection container from Microsoft
 - SQLite in-memory database is sufficient for integration testing
-- Source generator uses the Roslyn incremental generator API
+- Applications use standard Microsoft.Extensions.DependencyInjection for service registration
 - Applications use a scoped database context per request
 - Convention-based configuration applies to entities inheriting from the base class
 - Soft delete is optional and can be bypassed when needed
@@ -355,7 +344,6 @@ Things that can go wrong and how the system should handle them:
 - Microsoft.EntityFrameworkCore.InMemory for testing
 - System.Linq.Dynamic.Core for dynamic queries
 - Microsoft.Extensions.DependencyInjection
-- Roslyn compiler APIs (Microsoft.CodeAnalysis, Microsoft.CodeAnalysis.CSharp)
 
 ## Clarifications
 
@@ -367,8 +355,8 @@ Things that can go wrong and how the system should handle them:
 - **Q**: How should the persistence package handle data encryption and protection for sensitive fields?
   **A**: Out of scope - rely on database-level encryption (Transparent Data Encryption, Always Encrypted) or application-level encryption before entities reach repositories
 
-- **Q**: Should the source generator generate repository implementations or just register them?
-  **A**: Just register them. Implementations should be hand-written classes that inherit from the provided base class.
+- **Q**: How should repositories be registered?
+  **A**: Repositories must be registered explicitly in the application code (e.g., in a `RegistrationExtensions` class) to ensure maximum visibility and Native AOT compatibility.
 
 - **Q**: Should we support MongoDB or other databases?
   **A**: Not initially. The focus is on relational databases through EF Core. Other databases can be added later through additional packages.

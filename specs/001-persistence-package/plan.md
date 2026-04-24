@@ -4,7 +4,7 @@
 
 ## Summary
 
-We're building a complete persistence package for the NFramework with three separate NuGet packages. The abstractions package provides zero-dependency interfaces and base classes with a three-level hierarchy for maximum flexibility. The EF Core package brings everything to life with database integration, convention-based configuration, and dynamic querying. The source generator automatically registers repositories at compile time so developers don't have to. Everything works with Native AOT and follows clean architecture principles.
+We're building a complete persistence package for the NFramework with two separate NuGet packages. The abstractions package provides zero-dependency interfaces and base classes with a three-level hierarchy for maximum flexibility. The EF Core package brings everything to life with database integration, convention-based configuration, and dynamic querying. Everything follows clean architecture principles and is fully compatible with Native AOT through explicit registration patterns.
 
 ## Technical Context
 
@@ -14,7 +14,6 @@ We're building a complete persistence package for the NFramework with three sepa
 
 - Abstractions package: Zero external dependencies (pure interfaces and base classes)
 - EF Core package: Microsoft.EntityFrameworkCore 9.0+, System.Linq.Dynamic.Core for dynamic queries, Microsoft.Extensions.DependencyInjection.Abstractions
-- Generator package: Microsoft.CodeAnalysis and Microsoft.CodeAnalysis.CSharp (Roslyn incremental APIs)
 - Testing: Microsoft.EntityFrameworkCore.InMemory for fast tests, xUnit as the test framework
 
 **Storage**: Any relational database through EF Core (SQL Server, PostgreSQL, SQLite, etc.) - we stay provider-agnostic so applications choose their database
@@ -23,30 +22,28 @@ We're building a complete persistence package for the NFramework with three sepa
 
 **Target Platform**: .NET 11+ across Windows, Linux, and macOS, with full Native AOT support
 
-**Project Type**: Three-package library (NFramework.Persistence.Abstractions, NFramework.Persistence.EfCore, NFramework.Persistence.Generators)
+**Project Type**: Two-package library (NFramework.Persistence.Abstractions, NFramework.Persistence.EfCore)
 
 **Performance Goals**:
 
 - Single-entity operations: under 10ms
 - Pagination queries: under 100ms for 1000 records
 - Bulk operations: under 5 seconds for 1000 entities
-- Source generation: completes in under 1 second
 - Unit tests: each runs in under 100ms with in-memory database
 
 **Constraints**:
 
 - Must work with Native AOT (no reflection anywhere)
 - Abstractions can't reference any specific database technology
-- Generated code must be trimmable and AOT-compatible
+- Explicit registration must be used to ensure trimmability
 - Follow clean architecture - abstractions know nothing about implementation
 
 **Scale/Scope**:
 
 - Framework-level package used across many applications
-- Three distinct NuGet packages, each with a clear job
+- Two distinct NuGet packages, each with a clear job
 - About 20 public interfaces/classes in abstractions
 - About 50 public APIs in the EF Core implementation
-- About 15 diagnostic descriptors in the generator
 
 ## Constitution Check
 
@@ -73,8 +70,7 @@ specs/001-persistence-package/
 ├── data-model.md        # Entity and type definitions
 ├── quickstart.md        # Getting started tutorial
 ├── contracts/           # API contracts
-│   ├── repositories.md  # Repository interface contracts
-│   └── generator.md     # Source generator contract
+│   └── repositories.md  # Repository interface contracts
 └── tasks.md             # Task breakdown (created by /speckit.tasks)
 ```
 
@@ -121,27 +117,23 @@ src/
 │       ├── Contexts/
 │       │   └── BaseDbContext.cs
 │       └── Interceptors/
-│           └── SaveChangesInterceptor.cs
-│
-└── NFramework.Persistence.Generators/        # Source generator
-    └── PersistenceGenerator.cs
+│           └──## Phase 4: Final Polish & Release [x]
 
-tests/
-├── NFramework.Persistence.Abstractions.Tests/    # Unit tests for abstractions
-│   └── Features/
-│       ├── Repositories/
-│       ├── Entities/
-│       └── Pagination/
-│
-├── NFramework.Persistence.EfCore.Tests/         # Integration tests
-│   └── Features/
-│       ├── Repositories/
-│       ├── Configuration/
-│       └── Dynamic/
-│
-└── NFramework.Persistence.Generators.Tests/
-    ├── Golden/              # Expected generator outputs
-    └── GeneratorTests.cs
+1.  **Documentation**:
+    *   [x] Authored package-level READMEs.
+    *   [x] Updated architectural specs.
+2.  **Stability**:
+    *   [x] Implemented result set safety guards (`MaxResultSetSize`).
+    *   [x] Scaffolded and expanded performance benchmarks.
+3.  **Release Preparation**:
+    *   [x] Finalized NuGet metadata in projects.
+    *   [x] Synchronized task roadmap.
+    │
+    └── NFramework.Persistence.EfCore.Tests/         # Integration tests
+        └── Features/
+            ├── Repositories/
+            ├── Configuration/
+            └── Dynamic/
 ```
 
 **Structure Decision**: We use feature-based organization with `Features/` folders keeping related functionality together. Each feature has its own folder (Repositories, Configuration, etc.) making it easy to find and navigate code. The `Shared/` folder holds things that don't belong to a specific feature like base contexts and interceptors. This mirrors the clean architecture approach used in the starter project and keeps large codebases organized.

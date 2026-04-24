@@ -6,7 +6,7 @@
 
 ## Overview
 
-This document captures research findings for implementing the NFramework.Persistence package, a three-package solution providing repository abstractions, Entity Framework Core implementation, and Roslyn source generator for automatic DI registration - all with Native AOT compatibility.
+This document captures research findings for implementing the NFramework.Persistence package, a two-package solution providing repository abstractions and Entity Framework Core implementation - all with Native AOT compatibility.
 
 ---
 
@@ -59,7 +59,7 @@ Design **zero-reflection architecture** with trimmable code paths.
 1. **No reflection-based activation**: Use `new()` constraint or factory delegates
 2. **Avoid `GetType()` and `typeof()` runtime lookups**: Use generic type parameters
 3. **No dynamic**: All queries compile with `System.Linq.Dynamic.Core` (compiles expressions, not reflection)
-4. **Source generator for DI**: Emit concrete registration code instead of scanning assemblies
+4. **Explicit DI registration**: Use standard `AddScoped<,>` calls to ensure visibility and AOT safety
 5. **Trim-friendly attributes**: Use `DynamicallyAccessedMembers` where runtime access is unavoidable
 
 ### Alternatives Considered (2)
@@ -214,48 +214,6 @@ Implement **in-memory batching** using standard EF Core APIs.
 
 ---
 
-## 8. Source Generator Implementation
-
-### Decision (8)
-
-Use **Roslyn IncrementalGenerator** API with syntax receiver pattern.
-
-### Rationale (8)
-
-- Incremental generators cache results and only re-run on changes
-- Syntax receiver efficiently finds repository interface declarations
-- Generates concrete DI registration code at compile time
-- Zero runtime overhead
-- Fully AOT-compatible
-
-### Detection Pattern (8)
-
-```csharp
-// Find interfaces inheriting from IAsyncRepository<,>
-interfaceDeclaration.Syntax.Kind()
-    .IsInterfaceDeclaration()
-    && HasBaseType("IAsyncRepository")
-```
-
-### Generation Pattern (8)
-
-```csharp
-// Emit registration extension method
-public static void AddPersistenceRepositories(
-    this IServiceCollection services)
-{
-    services.AddScoped<IUserRepository, UserRepository>();
-    services.AddScoped<IOrderRepository, OrderRepository>();
-    // ...
-}
-```
-
-### Diagnostics (8)
-
-- `PG001`: Repository interface not found
-- `PG002`: Implementation class missing
-- `PG003`: Generic constraints not satisfied
-
 ---
 
 ## 9. Testing Strategy
@@ -282,12 +240,6 @@ NFramework.Persistence.EfCore.Tests/
 ├── Concurrency with mocked DbUpdateConcurrencyException
 ├── Bulk operations with InMemoryContext
 ```
-
-### Golden File Testing for Generator
-
-- Capture expected generated output as `.cs` files
-- Compare actual generator output against golden files
-- Run in CI to detect breaking changes
 
 ---
 
@@ -376,7 +328,6 @@ public static async Task EnsureDatabaseCreated(this IHost host)
 | Soft Delete | Global query filters | Automatic exclusion, easy bypass |
 | Dynamic Queries | System.Linq.Dynamic.Core | Runtime flexibility, parameterized |
 | Bulk Ops | In-memory batching | Simple, predictable, no new deps |
-| DI Registration | Roslyn source generator | Zero runtime overhead, AOT-safe |
 | Testing | Unit + in-memory EF Core | Fast, isolated, reliable |
 
 All decisions align with the framework's clean architecture principles and Native AOT requirements.
