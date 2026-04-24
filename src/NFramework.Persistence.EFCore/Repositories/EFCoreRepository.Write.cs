@@ -75,12 +75,17 @@ public abstract partial class EFCoreRepository<TEntity, TId, TContext>
         if (entities.Count == 0)
             return entities;
 
-        await DbSet.AddRangeAsync(entities, cancellationToken).ConfigureAwait(false);
+        foreach (var chunk in entities.Chunk(MaxBatchSize))
+        {
+            await DbSet.AddRangeAsync(chunk, cancellationToken).ConfigureAwait(false);
+            _ = await SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        }
+
         return entities;
     }
 
     /// <inheritdoc />
-    public virtual Task<ICollection<TEntity>> BulkUpdateAsync(
+    public virtual async Task<ICollection<TEntity>> BulkUpdateAsync(
         ICollection<TEntity> entities,
         CancellationToken cancellationToken = default
     )
@@ -90,15 +95,19 @@ public abstract partial class EFCoreRepository<TEntity, TId, TContext>
             throw new ArgumentException("Collection contains null entities.", nameof(entities));
 
         if (entities.Count == 0)
-            return Task.FromResult(entities);
+            return entities;
 
-        DbSet.UpdateRange(entities);
+        foreach (var chunk in entities.Chunk(MaxBatchSize))
+        {
+            DbSet.UpdateRange(chunk);
+            _ = await SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        }
 
-        return Task.FromResult(entities);
+        return entities;
     }
 
     /// <inheritdoc />
-    public virtual Task<ICollection<TEntity>> BulkDeleteAsync(
+    public virtual async Task<ICollection<TEntity>> BulkDeleteAsync(
         ICollection<TEntity> entities,
         CancellationToken cancellationToken = default
     )
@@ -108,10 +117,15 @@ public abstract partial class EFCoreRepository<TEntity, TId, TContext>
             throw new ArgumentException("Collection contains null entities.", nameof(entities));
 
         if (entities.Count == 0)
-            return Task.FromResult(entities);
+            return entities;
 
-        DbSet.RemoveRange(entities);
-        return Task.FromResult(entities);
+        foreach (var chunk in entities.Chunk(MaxBatchSize))
+        {
+            DbSet.RemoveRange(chunk);
+            _ = await SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        }
+
+        return entities;
     }
 
     /// <inheritdoc />

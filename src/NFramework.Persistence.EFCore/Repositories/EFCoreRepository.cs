@@ -45,10 +45,27 @@ public abstract partial class EFCoreRepository<
     protected DbSet<TEntity> DbSet => Context.Set<TEntity>();
 
     /// <summary>
-    /// The maximum number of results allowed for a single non-paginated query.
-    /// Defaults to 10,000. Set to 0 or null to disable protection (Not Recommended).
+    /// The default maximum number of results allowed for a single non-paginated query.
     /// </summary>
-    protected virtual int? MaxResultSetSize => 10000;
+    public const int DefaultMaxResultSetSize = 10000;
+
+    /// <summary>
+    /// The default maximum number of entities allowed in a single bulk operation chunk.
+    /// </summary>
+    protected const int DefaultMaxBatchSize = 1000;
+
+    /// <summary>
+    /// The maximum number of results allowed for a single non-paginated query.
+    /// Defaults to <see cref="DefaultMaxResultSetSize"/>.
+    /// Set to 0 or null to disable protection (Not Recommended).
+    /// </summary>
+    protected virtual int? MaxResultSetSize => DefaultMaxResultSetSize;
+
+    /// <summary>
+    /// The maximum number of entities processed in a single database roundtrip during bulk operations.
+    /// Defaults to <see cref="DefaultMaxBatchSize"/>.
+    /// </summary>
+    protected virtual int MaxBatchSize => DefaultMaxBatchSize;
 
     /// <summary>
     /// Enforces the <see cref="MaxResultSetSize"/> limit on a query.
