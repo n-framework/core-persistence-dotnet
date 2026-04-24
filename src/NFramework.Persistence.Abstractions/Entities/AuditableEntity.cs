@@ -11,6 +11,12 @@ public abstract class AuditableEntity<TId> : Entity<TId>, IAuditableEntity
     protected AuditableEntity(TId id)
         : base(id) { }
 
+    [System.Diagnostics.CodeAnalysis.SuppressMessage(
+        "Style",
+        "S1133:Do not forget to remove this deprecated code someday.",
+        Justification = "Necessary for ORM parameterless constructor requirement."
+    )]
+    [Obsolete("Use constructor with ID instead. This is only for ORM use.")]
     protected AuditableEntity()
         : base() { }
 

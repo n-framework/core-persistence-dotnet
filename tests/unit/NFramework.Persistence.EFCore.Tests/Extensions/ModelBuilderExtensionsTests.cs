@@ -11,10 +11,27 @@ public class ModelBuilderExtensionsTests
 {
     private sealed class EntityConventionsTestEntity : SoftDeletableEntity<Guid>
     {
+        [Obsolete("Only for ORM use", true)]
+#pragma warning disable CS0618
+        public EntityConventionsTestEntity() { }
+#pragma warning restore CS0618
+
+        public EntityConventionsTestEntity(Guid id)
+            : base(id) { }
+
         public string Name { get; set; } = string.Empty;
     }
 
-    private sealed class BaseEntityTestEntity : Entity<Guid> { }
+    private sealed class BaseEntityTestEntity : Entity<Guid>
+    {
+        [Obsolete("Only for ORM use", true)]
+#pragma warning disable CS0618
+        public BaseEntityTestEntity() { }
+#pragma warning restore CS0618
+
+        public BaseEntityTestEntity(Guid id)
+            : base(id) { }
+    }
 
     private sealed class ConventionTestDbContext(DbContextOptions<ConventionTestDbContext> options) : DbContext(options)
     {
@@ -51,7 +68,7 @@ public class ModelBuilderExtensionsTests
         using ConventionTestDbContext context = new(options);
 
         // Fix CA1812 by ensuring instantiation
-        _ = new EntityConventionsTestEntity();
+        _ = new EntityConventionsTestEntity(Guid.NewGuid());
 
         Microsoft.EntityFrameworkCore.Metadata.IEntityType? entityType = context.Model.FindEntityType(
             typeof(EntityConventionsTestEntity)
@@ -82,7 +99,7 @@ public class ModelBuilderExtensionsTests
             .Options;
 
         using ConventionTestDbContext context = new(options);
-        var entity = new EntityConventionsTestEntity { Name = "Test", IsDeleted = true };
+        var entity = new EntityConventionsTestEntity(Guid.NewGuid()) { Name = "Test", IsDeleted = true };
         context.Add(entity);
         await context.SaveChangesAsync();
 
@@ -108,7 +125,7 @@ public class ModelBuilderExtensionsTests
         using ConventionTestDbContext context = new(options);
 
         // Fix CA1812 by ensuring instantiation
-        _ = new BaseEntityTestEntity();
+        _ = new BaseEntityTestEntity(Guid.NewGuid());
 
         Microsoft.EntityFrameworkCore.Metadata.IEntityType? entityType = context.Model.FindEntityType(
             typeof(BaseEntityTestEntity)

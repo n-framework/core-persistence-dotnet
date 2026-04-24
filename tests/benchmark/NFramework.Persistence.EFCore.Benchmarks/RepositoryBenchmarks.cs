@@ -20,6 +20,14 @@ internal static class Program
 
 internal sealed class Product : Entity<Guid>
 {
+    [Obsolete("Only for ORM use", true)]
+#pragma warning disable CS0618
+    public Product() { }
+#pragma warning restore CS0618
+
+    public Product(Guid id)
+        : base(id) { }
+
     public string Name { get; set; } = default!;
 }
 
@@ -61,7 +69,7 @@ public class RepositoryBenchmarks : IDisposable
         // Seed 1000 items for pagination tests
         var products = Enumerable
             .Range(1, 1000)
-            .Select(i => new Product { Id = i == 1 ? _id : Guid.NewGuid(), Name = $"Product {i}" })
+            .Select(i => new Product(i == 1 ? _id : Guid.NewGuid()) { Name = $"Product {i}" })
             .ToList();
 
         _context.Products.AddRange(products);
@@ -83,19 +91,14 @@ public class RepositoryBenchmarks : IDisposable
     [Benchmark]
     public async Task AddAsync()
     {
-        var product = new Product { Id = Guid.NewGuid(), Name = "New Product" };
+        var product = new Product(Guid.NewGuid()) { Name = "New Product" };
         await _repository.AddAsync(product);
     }
 
     [Benchmark]
     public async Task GetPaginatedListAsync()
     {
-        await _repository.GetListAsync(
-            new PageableQueryOption<Product>
-            {
-                Page = new Paging { Index = 5, Size = 20 },
-            }
-        );
+        await _repository.GetListAsync(new PageableQueryOption<Product> { Page = new Paging(5, 20) });
     }
 
     [Benchmark]
@@ -104,16 +107,8 @@ public class RepositoryBenchmarks : IDisposable
         await _repository.GetListByDynamicAsync(
             new PageableDynamicQueryOption
             {
-                Page = new Paging { Index = 0, Size = 10 },
-                Filters = new List<Filter>
-                {
-                    new Filter
-                    {
-                        Field = "Name",
-                        Operator = FilterOperator.Contains,
-                        Value = "Product",
-                    },
-                },
+                Page = new Paging(0, 10),
+                Filters = [new Filter("Name", FilterOperator.Contains, "Product")],
             }
         );
     }

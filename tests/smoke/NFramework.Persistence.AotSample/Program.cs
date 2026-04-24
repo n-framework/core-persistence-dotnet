@@ -22,6 +22,14 @@ internal static class Program
 // Define a simple entity for AOT testing
 internal sealed class AotProduct : Entity<Guid>
 {
+    [Obsolete("Only for ORM use", true)]
+#pragma warning disable CS0618
+    public AotProduct() { }
+#pragma warning restore CS0618
+
+    public AotProduct(Guid id)
+        : base(id) { }
+
     public string Name { get; set; } = default!;
     public decimal Price { get; set; }
 }
@@ -74,12 +82,7 @@ internal sealed class AotRunner
             var repo = scope.ServiceProvider.GetRequiredService<IAotProductRepository>();
 
             // 2. Basic CRUD
-            var product = new AotProduct
-            {
-                Id = Guid.NewGuid(),
-                Name = "AOT Product",
-                Price = 99.99m,
-            };
+            var product = new AotProduct(Guid.NewGuid()) { Name = "AOT Product", Price = 99.99m };
             await repo.AddAsync(product);
             await repo.SaveChangesAsync();
             Console.WriteLine($"[AOT] Product created with ID: {product.Id}");

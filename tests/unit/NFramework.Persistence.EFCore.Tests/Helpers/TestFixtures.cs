@@ -12,6 +12,14 @@ namespace NFramework.Persistence.EFCore.Tests.Helpers;
 /// </summary>
 internal sealed class TestProduct : SoftDeletableEntity<Guid>
 {
+    [Obsolete("Only for ORM use", true)]
+#pragma warning disable CS0618 // Type or member is obsolete
+    public TestProduct() { }
+#pragma warning restore CS0618
+
+    public TestProduct(Guid id)
+        : base(id) { }
+
     /// <summary>Product name.</summary>
     public string Name { get; set; } = string.Empty;
 
@@ -27,6 +35,14 @@ internal sealed class TestProduct : SoftDeletableEntity<Guid>
 /// </summary>
 internal sealed class TestCategory : AuditableEntity<int>
 {
+    [Obsolete("Only for ORM use", true)]
+#pragma warning disable CS0618 // Type or member is obsolete
+    public TestCategory() { }
+#pragma warning restore CS0618
+
+    public TestCategory(int id)
+        : base(id) { }
+
     /// <summary>Category name.</summary>
     public string Name { get; set; } = string.Empty;
 }
@@ -36,6 +52,14 @@ internal sealed class TestCategory : AuditableEntity<int>
 /// </summary>
 internal sealed class TestOrder : SoftDeletableEntity<Guid>
 {
+    [Obsolete("Only for ORM use", true)]
+#pragma warning disable CS0618 // Type or member is obsolete
+    public TestOrder() { }
+#pragma warning restore CS0618
+
+    public TestOrder(Guid id)
+        : base(id) { }
+
     /// <summary>Order number.</summary>
     public string OrderNumber { get; set; } = string.Empty;
 
@@ -48,6 +72,14 @@ internal sealed class TestOrder : SoftDeletableEntity<Guid>
 /// </summary>
 internal sealed class TestOrderItem : SoftDeletableEntity<Guid>
 {
+    [Obsolete("Only for ORM use", true)]
+#pragma warning disable CS0618 // Type or member is obsolete
+    public TestOrderItem() { }
+#pragma warning restore CS0618
+
+    public TestOrderItem(Guid id)
+        : base(id) { }
+
     /// <summary>FK to parent order.</summary>
     public Guid OrderId { get; set; }
 
@@ -66,6 +98,14 @@ internal sealed class TestOrderItem : SoftDeletableEntity<Guid>
 /// </summary>
 internal sealed class TestOrderSubItem : SoftDeletableEntity<Guid>
 {
+    [Obsolete("Only for ORM use", true)]
+#pragma warning disable CS0618 // Type or member is obsolete
+    public TestOrderSubItem() { }
+#pragma warning restore CS0618
+
+    public TestOrderSubItem(Guid id)
+        : base(id) { }
+
     /// <summary>FK to parent item.</summary>
     public Guid ItemId { get; set; }
 
@@ -81,6 +121,14 @@ internal sealed class TestOrderSubItem : SoftDeletableEntity<Guid>
 /// </summary>
 internal sealed class TestEmployee : SoftDeletableEntity<Guid>
 {
+    [Obsolete("Only for ORM use", true)]
+#pragma warning disable CS0618 // Type or member is obsolete
+    public TestEmployee() { }
+#pragma warning restore CS0618
+
+    public TestEmployee(Guid id)
+        : base(id) { }
+
     /// <summary>Employee name.</summary>
     public string Name { get; set; } = string.Empty;
 
@@ -99,6 +147,14 @@ internal sealed class TestEmployee : SoftDeletableEntity<Guid>
 /// </summary>
 internal sealed class TestUser : SoftDeletableEntity<Guid>
 {
+    [Obsolete("Only for ORM use", true)]
+#pragma warning disable CS0618 // Type or member is obsolete
+    public TestUser() { }
+#pragma warning restore CS0618
+
+    public TestUser(Guid id)
+        : base(id) { }
+
     public string Name { get; set; } = string.Empty;
     public ICollection<TestRole> Roles { get; } = [];
 }
@@ -108,6 +164,14 @@ internal sealed class TestUser : SoftDeletableEntity<Guid>
 /// </summary>
 internal sealed class TestRole : SoftDeletableEntity<Guid>
 {
+    [Obsolete("Only for ORM use", true)]
+#pragma warning disable CS0618 // Type or member is obsolete
+    public TestRole() { }
+#pragma warning restore CS0618
+
+    public TestRole(Guid id)
+        : base(id) { }
+
     public string Name { get; set; } = string.Empty;
     public ICollection<TestUser> Users { get; } = [];
 }
@@ -117,6 +181,14 @@ internal sealed class TestRole : SoftDeletableEntity<Guid>
 /// </summary>
 internal sealed class TestOrderLog : AuditableEntity<Guid>
 {
+    [Obsolete("Only for ORM use", true)]
+#pragma warning disable CS0618 // Type or member is obsolete
+    public TestOrderLog() { }
+#pragma warning restore CS0618
+
+    public TestOrderLog(Guid id)
+        : base(id) { }
+
     public Guid OrderId { get; set; }
     public TestOrder? Order { get; set; }
     public string Message { get; set; } = string.Empty;
