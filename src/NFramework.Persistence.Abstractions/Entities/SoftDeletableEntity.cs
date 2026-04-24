@@ -8,7 +8,7 @@ namespace NFramework.Persistence.Abstractions.Entities;
 public abstract class SoftDeletableEntity<TId> : AuditableEntity<TId>, ISoftDeletableEntity
     where TId : IEquatable<TId>
 {
-    private bool _isSyncing;
+    private int _isSyncing;
 
     /// <summary>
     /// Boolean flag for fast query filtering.
@@ -20,13 +20,12 @@ public abstract class SoftDeletableEntity<TId> : AuditableEntity<TId>, ISoftDele
         get;
         set
         {
-            if (_isSyncing)
+            if (System.Threading.Interlocked.CompareExchange(ref _isSyncing, 1, 0) == 1)
             {
                 field = value;
                 return;
             }
 
-            _isSyncing = true;
             try
             {
                 field = value;
@@ -37,7 +36,7 @@ public abstract class SoftDeletableEntity<TId> : AuditableEntity<TId>, ISoftDele
             }
             finally
             {
-                _isSyncing = false;
+                System.Threading.Volatile.Write(ref _isSyncing, 0);
             }
         }
     }
@@ -52,13 +51,12 @@ public abstract class SoftDeletableEntity<TId> : AuditableEntity<TId>, ISoftDele
         get;
         set
         {
-            if (_isSyncing)
+            if (System.Threading.Interlocked.CompareExchange(ref _isSyncing, 1, 0) == 1)
             {
                 field = value;
                 return;
             }
 
-            _isSyncing = true;
             try
             {
                 field = value;
@@ -66,7 +64,7 @@ public abstract class SoftDeletableEntity<TId> : AuditableEntity<TId>, ISoftDele
             }
             finally
             {
-                _isSyncing = false;
+                System.Threading.Volatile.Write(ref _isSyncing, 0);
             }
         }
     }
