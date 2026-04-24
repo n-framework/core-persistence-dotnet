@@ -8,7 +8,6 @@ namespace NFramework.Persistence.EFCore.Extensions;
 /// </summary>
 public static class DbContextOptionsBuilderExtensions
 {
-    private static SoftDeletionInterceptor SoftDeleteInterceptorInstance { get; } = new();
     private static AuditableInterceptor AuditableInterceptorInstance { get; } = new();
     private static AuditLoggerInterceptor AuditLoggerInterceptorInstance { get; } = new();
 
@@ -17,10 +16,11 @@ public static class DbContextOptionsBuilderExtensions
         /// <summary>
         /// Adds the NFramework soft delete interceptor to the DbContext options.
         /// </summary>
-        public DbContextOptionsBuilder AddSoftDeleteInterceptor()
+        /// <param name="maxCascadeDepth">The maximum depth allowed for cascade soft-delete traversal. Defaults to 50.</param>
+        public DbContextOptionsBuilder AddSoftDeleteInterceptor(int? maxCascadeDepth = 50)
         {
             ArgumentNullException.ThrowIfNull(builder);
-            return builder.AddInterceptors(SoftDeleteInterceptorInstance);
+            return builder.AddInterceptors(new SoftDeletionInterceptor { MaxCascadeDepth = maxCascadeDepth });
         }
 
         /// <summary>
@@ -48,10 +48,11 @@ public static class DbContextOptionsBuilderExtensions
         /// <summary>
         /// Adds the NFramework soft delete interceptor to the DbContext options.
         /// </summary>
-        public DbContextOptionsBuilder<TContext> AddSoftDeleteInterceptor()
+        /// <param name="maxCascadeDepth">The maximum depth allowed for cascade soft-delete traversal. Defaults to 50.</param>
+        public DbContextOptionsBuilder<TContext> AddSoftDeleteInterceptor(int? maxCascadeDepth = 50)
         {
             ArgumentNullException.ThrowIfNull(builder);
-            return builder.AddInterceptors(SoftDeleteInterceptorInstance);
+            return builder.AddInterceptors(new SoftDeletionInterceptor { MaxCascadeDepth = maxCascadeDepth });
         }
 
         /// <summary>

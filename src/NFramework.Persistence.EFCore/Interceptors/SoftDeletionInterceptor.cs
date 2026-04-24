@@ -13,6 +13,12 @@ namespace NFramework.Persistence.EFCore.Interceptors;
 /// </summary>
 public sealed class SoftDeletionInterceptor : SaveChangesInterceptor
 {
+    /// <summary>
+    /// The maximum depth allowed for cascade soft-delete traversal.
+    /// Defaults to 50. Set to 0 or null to disable depth protection (Not Recommended).
+    /// </summary>
+    public int? MaxCascadeDepth { get; init; } = 50;
+
     /// <inheritdoc />
     public override InterceptionResult<int> SavingChanges(DbContextEventData eventData, InterceptionResult<int> result)
     {
@@ -21,7 +27,7 @@ public sealed class SoftDeletionInterceptor : SaveChangesInterceptor
         DateTime now = DateTime.UtcNow;
         HashSet<object> visited = [];
         foreach (EntityEntry entry in GetEntriesToSoftDelete(eventData.Context))
-            CascadeSoftDelete(eventData.Context!, entry, now, visited);
+            CascadeSoftDelete(eventData.Context!, entry, now, visited, 0, MaxCascadeDepth);
 
         return base.SavingChanges(eventData, result);
     }
@@ -38,7 +44,7 @@ public sealed class SoftDeletionInterceptor : SaveChangesInterceptor
         DateTime now = DateTime.UtcNow;
         HashSet<object> visited = [];
         foreach (EntityEntry entry in GetEntriesToSoftDelete(eventData.Context))
-            await CascadeSoftDeleteAsync(eventData.Context!, entry, now, visited, cancellationToken)
+            await CascadeSoftDeleteAsync(eventData.Context!, entry, now, visited, 0, MaxCascadeDepth, cancellationToken)
                 .ConfigureAwait(false);
 
         return await base.SavingChangesAsync(eventData, result, cancellationToken).ConfigureAwait(false);
@@ -120,8 +126,20 @@ public sealed class SoftDeletionInterceptor : SaveChangesInterceptor
     /// <summary>
     /// Recursively marks entities for soft deletion through navigation traversal.
     /// </summary>
-    private static void CascadeSoftDelete(DbContext context, EntityEntry entry, DateTime now, HashSet<object> visited)
+    private static void CascadeSoftDelete(
+        DbContext context,
+        EntityEntry entry,
+        DateTime now,
+        HashSet<object> visited,
+        int depth,
+        int? maxDepth
+    )
     {
+        if (maxDepth is { } limit && limit > 0 && depth > limit)
+            throw new InvalidOperationException(
+                $"Cascade soft-delete exceeded maximum depth of {limit}. This may indicate a circular reference or an excessively deep graph that could cause a StackOverflow."
+            );
+
         if (!visited.Add(entry.Entity))
             return;
 
@@ -147,7 +165,7 @@ public sealed class SoftDeletionInterceptor : SaveChangesInterceptor
                 }
 
                 foreach (EntityEntry childEntry in GetValidChildren(context, collectionEntry.CurrentValue))
-                    CascadeSoftDelete(context, childEntry, now, visited);
+                    CascadeSoftDelete(context, childEntry, now, visited, depth + 1, maxDepth);
             }
             else
             {
@@ -168,7 +186,7 @@ public sealed class SoftDeletionInterceptor : SaveChangesInterceptor
                 }
 
                 if (GetValidChild(context, referenceEntry.CurrentValue) is { } childEntry)
-                    CascadeSoftDelete(context, childEntry, now, visited);
+                    CascadeSoftDelete(context, childEntry, now, visited, depth + 1, maxDepth);
             }
     }
 
@@ -180,9 +198,16 @@ public sealed class SoftDeletionInterceptor : SaveChangesInterceptor
         EntityEntry entry,
         DateTime now,
         HashSet<object> visited,
+        int depth,
+        int? maxDepth,
         CancellationToken cancellationToken
     )
     {
+        if (maxDepth is { } limit && limit > 0 && depth > limit)
+            throw new InvalidOperationException(
+                $"Cascade soft-delete exceeded maximum depth of {limit}. This may indicate a circular reference or an excessively deep graph that could cause a StackOverflow."
+            );
+
         if (!visited.Add(entry.Entity))
             return;
 
@@ -208,7 +233,15 @@ public sealed class SoftDeletionInterceptor : SaveChangesInterceptor
                 }
 
                 foreach (EntityEntry childEntry in GetValidChildren(context, collectionEntry.CurrentValue))
-                    await CascadeSoftDeleteAsync(context, childEntry, now, visited, cancellationToken)
+                    await CascadeSoftDeleteAsync(
+                            context,
+                            childEntry,
+                            now,
+                            visited,
+                            depth + 1,
+                            maxDepth,
+                            cancellationToken
+                        )
                         .ConfigureAwait(false);
             }
             else
@@ -230,7 +263,15 @@ public sealed class SoftDeletionInterceptor : SaveChangesInterceptor
                 }
 
                 if (GetValidChild(context, referenceEntry.CurrentValue) is { } childEntry)
-                    await CascadeSoftDeleteAsync(context, childEntry, now, visited, cancellationToken)
+                    await CascadeSoftDeleteAsync(
+                            context,
+                            childEntry,
+                            now,
+                            visited,
+                            depth + 1,
+                            maxDepth,
+                            cancellationToken
+                        )
                         .ConfigureAwait(false);
             }
     }
