@@ -15,8 +15,8 @@ public sealed class SoftDeleteManyToManyTests
     {
         // Arrange
         using TestDbContext context = TestDbContext.Create();
-        TestRole adminRole = new() { Id = Guid.NewGuid(), Name = "Admin" };
-        TestUser user1 = new() { Id = Guid.NewGuid(), Name = "Alice" };
+        TestRole adminRole = new(Guid.NewGuid()) { Name = "Admin" };
+        TestUser user1 = new(Guid.NewGuid()) { Name = "Alice" };
 
         user1.Roles.Add(adminRole);
         await context.Roles.AddAsync(adminRole);

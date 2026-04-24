@@ -11,8 +11,8 @@ public class SoftDeletionNavigationFailureTests
     {
         // Arrange
         using var context = TestDbContext.CreateSqlite();
-        var order = new TestOrder { Id = Guid.NewGuid(), OrderNumber = "FAIL-LOAD" };
-        var item = new TestOrderItem { Id = Guid.NewGuid(), Order = order };
+        var order = new TestOrder(Guid.NewGuid()) { OrderNumber = "FAIL-LOAD" };
+        var item = new TestOrderItem(Guid.NewGuid()) { Order = order };
 
         context.Orders.Add(order);
         context.OrderItems.Add(item);

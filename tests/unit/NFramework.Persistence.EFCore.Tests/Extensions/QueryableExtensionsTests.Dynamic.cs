@@ -20,14 +20,7 @@ public class DynamicQueryTests
 
         for (int i = 0; i < 25; i++)
         {
-            await repo.AddAsync(
-                new TestProduct
-                {
-                    Id = Guid.NewGuid(),
-                    Name = $"Product_{i}",
-                    Price = i * 1.0m,
-                }
-            );
+            await repo.AddAsync(new TestProduct(Guid.NewGuid()) { Name = $"Product_{i}", Price = i * 1.0m });
         }
 
         await repo.SaveChangesAsync();
@@ -51,14 +44,7 @@ public class DynamicQueryTests
 
         for (int i = 0; i < 25; i++)
         {
-            await repo.AddAsync(
-                new TestProduct
-                {
-                    Id = Guid.NewGuid(),
-                    Name = $"Product_{i}",
-                    Price = i * 1.0m,
-                }
-            );
+            await repo.AddAsync(new TestProduct(Guid.NewGuid()) { Name = $"Product_{i}", Price = i * 1.0m });
         }
 
         await repo.SaveChangesAsync();
@@ -78,30 +64,9 @@ public class DynamicQueryTests
         using TestDbContext context = TestDbContext.Create();
         TestProductRepository repo = new(context);
 
-        await repo.AddAsync(
-            new TestProduct
-            {
-                Id = Guid.NewGuid(),
-                Name = "Alpha",
-                Price = 10.00m,
-            }
-        );
-        await repo.AddAsync(
-            new TestProduct
-            {
-                Id = Guid.NewGuid(),
-                Name = "Beta",
-                Price = 20.00m,
-            }
-        );
-        await repo.AddAsync(
-            new TestProduct
-            {
-                Id = Guid.NewGuid(),
-                Name = "Alpha",
-                Price = 30.00m,
-            }
-        );
+        await repo.AddAsync(new TestProduct(Guid.NewGuid()) { Name = "Alpha", Price = 10.00m });
+        await repo.AddAsync(new TestProduct(Guid.NewGuid()) { Name = "Beta", Price = 20.00m });
+        await repo.AddAsync(new TestProduct(Guid.NewGuid()) { Name = "Alpha", Price = 30.00m });
         await repo.SaveChangesAsync();
 
         DynamicQueryOption options = new(
@@ -126,30 +91,9 @@ public class DynamicQueryTests
         using TestDbContext context = TestDbContext.Create();
         TestProductRepository repo = new(context);
 
-        await repo.AddAsync(
-            new TestProduct
-            {
-                Id = Guid.NewGuid(),
-                Name = "A",
-                Price = 1.00m,
-            }
-        );
-        await repo.AddAsync(
-            new TestProduct
-            {
-                Id = Guid.NewGuid(),
-                Name = "B",
-                Price = 2.00m,
-            }
-        );
-        await repo.AddAsync(
-            new TestProduct
-            {
-                Id = Guid.NewGuid(),
-                Name = "A",
-                Price = 3.00m,
-            }
-        );
+        await repo.AddAsync(new TestProduct(Guid.NewGuid()) { Name = "A", Price = 1.00m });
+        await repo.AddAsync(new TestProduct(Guid.NewGuid()) { Name = "B", Price = 2.00m });
+        await repo.AddAsync(new TestProduct(Guid.NewGuid()) { Name = "A", Price = 3.00m });
         await repo.SaveChangesAsync();
 
         DynamicQueryOption options = new(
@@ -174,22 +118,8 @@ public class DynamicQueryTests
         using TestDbContext context = TestDbContext.Create();
         TestProductRepository repo = new(context);
 
-        await repo.AddAsync(
-            new TestProduct
-            {
-                Id = Guid.NewGuid(),
-                Name = "X",
-                Price = 1.00m,
-            }
-        );
-        await repo.AddAsync(
-            new TestProduct
-            {
-                Id = Guid.NewGuid(),
-                Name = "Y",
-                Price = 2.00m,
-            }
-        );
+        await repo.AddAsync(new TestProduct(Guid.NewGuid()) { Name = "X", Price = 1.00m });
+        await repo.AddAsync(new TestProduct(Guid.NewGuid()) { Name = "Y", Price = 2.00m });
         await repo.SaveChangesAsync();
 
         DynamicQueryOption options = new();
@@ -205,14 +135,7 @@ public class DynamicQueryTests
 
         for (int i = 0; i < 15; i++)
         {
-            await repo.AddAsync(
-                new TestProduct
-                {
-                    Id = Guid.NewGuid(),
-                    Name = $"DynProduct_{i}",
-                    Price = i * 1.0m,
-                }
-            );
+            await repo.AddAsync(new TestProduct(Guid.NewGuid()) { Name = $"DynProduct_{i}", Price = i * 1.0m });
         }
 
         await repo.SaveChangesAsync();
@@ -232,18 +155,16 @@ public class DynamicQueryTests
         TestProductRepository repo = new(context);
 
         await repo.AddAsync(
-            new TestProduct
+            new TestProduct(Guid.NewGuid())
             {
-                Id = Guid.NewGuid(),
                 Name = "With Desc",
                 Description = "Exists",
                 Price = 10.0m,
             }
         );
         await repo.AddAsync(
-            new TestProduct
+            new TestProduct(Guid.NewGuid())
             {
-                Id = Guid.NewGuid(),
                 Name = "No Desc",
                 Description = null,
                 Price = 20.0m,
@@ -266,30 +187,9 @@ public class DynamicQueryTests
         using TestDbContext context = TestDbContext.Create();
         TestProductRepository repo = new(context);
 
-        await repo.AddAsync(
-            new TestProduct
-            {
-                Id = Guid.NewGuid(),
-                Name = "Apple",
-                Price = 10.0m,
-            }
-        );
-        await repo.AddAsync(
-            new TestProduct
-            {
-                Id = Guid.NewGuid(),
-                Name = "Banana",
-                Price = 20.0m,
-            }
-        );
-        await repo.AddAsync(
-            new TestProduct
-            {
-                Id = Guid.NewGuid(),
-                Name = "Apricot",
-                Price = 30.0m,
-            }
-        );
+        await repo.AddAsync(new TestProduct(Guid.NewGuid()) { Name = "Apple", Price = 10.0m });
+        await repo.AddAsync(new TestProduct(Guid.NewGuid()) { Name = "Banana", Price = 20.0m });
+        await repo.AddAsync(new TestProduct(Guid.NewGuid()) { Name = "Apricot", Price = 30.0m });
         await repo.SaveChangesAsync();
 
         DynamicQueryOption options = new(
@@ -316,30 +216,9 @@ public class DynamicQueryTests
         using TestDbContext context = TestDbContext.Create();
         TestProductRepository repo = new(context);
 
-        await repo.AddAsync(
-            new TestProduct
-            {
-                Id = Guid.NewGuid(),
-                Name = "Apple",
-                Price = 10.0m,
-            }
-        );
-        await repo.AddAsync(
-            new TestProduct
-            {
-                Id = Guid.NewGuid(),
-                Name = "Banana",
-                Price = 20.0m,
-            }
-        );
-        await repo.AddAsync(
-            new TestProduct
-            {
-                Id = Guid.NewGuid(),
-                Name = "Cherry",
-                Price = 30.0m,
-            }
-        );
+        await repo.AddAsync(new TestProduct(Guid.NewGuid()) { Name = "Apple", Price = 10.0m });
+        await repo.AddAsync(new TestProduct(Guid.NewGuid()) { Name = "Banana", Price = 20.0m });
+        await repo.AddAsync(new TestProduct(Guid.NewGuid()) { Name = "Cherry", Price = 30.0m });
         await repo.SaveChangesAsync();
 
         DynamicQueryOption options = new(
@@ -364,22 +243,8 @@ public class DynamicQueryTests
         using TestDbContext context = TestDbContext.Create();
         TestProductRepository repo = new(context);
 
-        await repo.AddAsync(
-            new TestProduct
-            {
-                Id = Guid.NewGuid(),
-                Name = "Apple",
-                Price = 10.0m,
-            }
-        );
-        await repo.AddAsync(
-            new TestProduct
-            {
-                Id = Guid.NewGuid(),
-                Name = "Banana",
-                Price = 20.0m,
-            }
-        );
+        await repo.AddAsync(new TestProduct(Guid.NewGuid()) { Name = "Apple", Price = 10.0m });
+        await repo.AddAsync(new TestProduct(Guid.NewGuid()) { Name = "Banana", Price = 20.0m });
         await repo.SaveChangesAsync();
 
         DynamicQueryOption options = new(
@@ -406,11 +271,10 @@ public class DynamicQueryTests
         using TestDbContext context = TestDbContext.Create();
         TestProductRepository repo = new(context);
 
-        TestProduct active = await repo.AddAsync(new TestProduct { Id = Guid.NewGuid(), Name = "Active" });
+        TestProduct active = await repo.AddAsync(new TestProduct(Guid.NewGuid()) { Name = "Active" });
         TestProduct deleted = await repo.AddAsync(
-            new TestProduct
+            new TestProduct(Guid.NewGuid())
             {
-                Id = Guid.NewGuid(),
                 Name = "Deleted",
                 IsDeleted = true,
                 DeletedAt = DateTime.UtcNow,
@@ -458,30 +322,9 @@ public class DynamicQueryTests
         using TestDbContext context = TestDbContext.Create();
         TestProductRepository repo = new(context);
 
-        await repo.AddAsync(
-            new TestProduct
-            {
-                Id = Guid.NewGuid(),
-                Name = "A",
-                Price = 10,
-            }
-        );
-        await repo.AddAsync(
-            new TestProduct
-            {
-                Id = Guid.NewGuid(),
-                Name = "B",
-                Price = 20,
-            }
-        );
-        await repo.AddAsync(
-            new TestProduct
-            {
-                Id = Guid.NewGuid(),
-                Name = "C",
-                Price = 30,
-            }
-        );
+        await repo.AddAsync(new TestProduct(Guid.NewGuid()) { Name = "A", Price = 10 });
+        await repo.AddAsync(new TestProduct(Guid.NewGuid()) { Name = "B", Price = 20 });
+        await repo.AddAsync(new TestProduct(Guid.NewGuid()) { Name = "C", Price = 30 });
         await repo.SaveChangesAsync();
 
         DynamicQueryOption options = new(
@@ -521,30 +364,9 @@ public class DynamicQueryTests
         using TestDbContext context = TestDbContext.Create();
         TestProductRepository repo = new(context);
 
-        await repo.AddAsync(
-            new TestProduct
-            {
-                Id = Guid.NewGuid(),
-                Name = "B",
-                Price = 20,
-            }
-        );
-        await repo.AddAsync(
-            new TestProduct
-            {
-                Id = Guid.NewGuid(),
-                Name = "A",
-                Price = 30,
-            }
-        );
-        await repo.AddAsync(
-            new TestProduct
-            {
-                Id = Guid.NewGuid(),
-                Name = "C",
-                Price = 10,
-            }
-        );
+        await repo.AddAsync(new TestProduct(Guid.NewGuid()) { Name = "B", Price = 20 });
+        await repo.AddAsync(new TestProduct(Guid.NewGuid()) { Name = "A", Price = 30 });
+        await repo.AddAsync(new TestProduct(Guid.NewGuid()) { Name = "C", Price = 10 });
         await repo.SaveChangesAsync();
 
         DynamicQueryOption options = new(Orders: [new Order { Field = "Name", Direction = OrderDirection.Asc }]);
@@ -570,7 +392,7 @@ public class DynamicQueryTests
         using TestDbContext context = TestDbContext.Create();
         TestProductRepository repo = new(context);
 
-        await repo.AddAsync(new TestProduct { Id = Guid.NewGuid(), Name = "Match" });
+        await repo.AddAsync(new TestProduct(Guid.NewGuid()) { Name = "Match" });
         await repo.SaveChangesAsync();
 
         DynamicQueryOption optionsMatch = new(
@@ -609,30 +431,9 @@ public class DynamicQueryTests
         using TestDbContext context = TestDbContext.Create();
         TestProductRepository repo = new(context);
 
-        await repo.AddAsync(
-            new TestProduct
-            {
-                Id = Guid.NewGuid(),
-                Name = "10",
-                Price = 10m,
-            }
-        );
-        await repo.AddAsync(
-            new TestProduct
-            {
-                Id = Guid.NewGuid(),
-                Name = "20",
-                Price = 20m,
-            }
-        );
-        await repo.AddAsync(
-            new TestProduct
-            {
-                Id = Guid.NewGuid(),
-                Name = "30",
-                Price = 30m,
-            }
-        );
+        await repo.AddAsync(new TestProduct(Guid.NewGuid()) { Name = "10", Price = 10m });
+        await repo.AddAsync(new TestProduct(Guid.NewGuid()) { Name = "20", Price = 20m });
+        await repo.AddAsync(new TestProduct(Guid.NewGuid()) { Name = "30", Price = 30m });
         await repo.SaveChangesAsync();
 
         // GreaterThan

@@ -22,19 +22,9 @@ public sealed class SoftDeletionDepthLimitTests
         using var context = new TestDbContext(options);
 
         // Create hierarchy: L1 -> L2 -> L3 (Depth 2 from root)
-        var l1 = new TestEmployee { Id = Guid.NewGuid(), Name = "L1" };
-        var l2 = new TestEmployee
-        {
-            Id = Guid.NewGuid(),
-            Name = "L2",
-            ManagerId = l1.Id,
-        };
-        var l3 = new TestEmployee
-        {
-            Id = Guid.NewGuid(),
-            Name = "L3",
-            ManagerId = l2.Id,
-        };
+        var l1 = new TestEmployee(Guid.NewGuid()) { Name = "L1" };
+        var l2 = new TestEmployee(Guid.NewGuid()) { Name = "L2", ManagerId = l1.Id };
+        var l3 = new TestEmployee(Guid.NewGuid()) { Name = "L3", ManagerId = l2.Id };
 
         await context.Employees.AddRangeAsync(l1, l2, l3);
         await context.SaveChangesAsync();
@@ -60,25 +50,10 @@ public sealed class SoftDeletionDepthLimitTests
         using var context = new TestDbContext(options);
 
         // Create hierarchy: L1 -> L2 -> L3 -> L4 (Depth 3 from root)
-        var l1 = new TestEmployee { Id = Guid.NewGuid(), Name = "L1" };
-        var l2 = new TestEmployee
-        {
-            Id = Guid.NewGuid(),
-            Name = "L2",
-            ManagerId = l1.Id,
-        };
-        var l3 = new TestEmployee
-        {
-            Id = Guid.NewGuid(),
-            Name = "L3",
-            ManagerId = l2.Id,
-        };
-        var l4 = new TestEmployee
-        {
-            Id = Guid.NewGuid(),
-            Name = "L4",
-            ManagerId = l3.Id,
-        };
+        var l1 = new TestEmployee(Guid.NewGuid()) { Name = "L1" };
+        var l2 = new TestEmployee(Guid.NewGuid()) { Name = "L2", ManagerId = l1.Id };
+        var l3 = new TestEmployee(Guid.NewGuid()) { Name = "L3", ManagerId = l2.Id };
+        var l4 = new TestEmployee(Guid.NewGuid()) { Name = "L4", ManagerId = l3.Id };
 
         await context.Employees.AddRangeAsync(l1, l2, l3, l4);
         await context.SaveChangesAsync();
@@ -109,12 +84,7 @@ public sealed class SoftDeletionDepthLimitTests
         TestEmployee? manager = null;
         for (int i = 0; i < 10; i++)
         {
-            var emp = new TestEmployee
-            {
-                Id = Guid.NewGuid(),
-                Name = $"Emp{i}",
-                ManagerId = manager?.Id,
-            };
+            var emp = new TestEmployee(Guid.NewGuid()) { Name = $"Emp{i}", ManagerId = manager?.Id };
             employees.Add(emp);
             manager = emp;
         }

@@ -24,9 +24,9 @@ public class FilterOperatorTests
         // Arrange
         using var context = TestDbContext.Create();
         context.Orders.AddRange(
-            new TestOrder { Id = Guid.NewGuid(), OrderNumber = "Order-1" },
-            new TestOrder { Id = Guid.NewGuid(), OrderNumber = "Order-2" },
-            new TestOrder { Id = Guid.NewGuid(), OrderNumber = "Order-3" }
+            new TestOrder(Guid.NewGuid()) { OrderNumber = "Order-1" },
+            new TestOrder(Guid.NewGuid()) { OrderNumber = "Order-2" },
+            new TestOrder(Guid.NewGuid()) { OrderNumber = "Order-3" }
         );
         await context.SaveChangesAsync();
 
@@ -61,24 +61,9 @@ public class FilterOperatorTests
         // Arrange
         using var context = TestDbContext.Create();
         context.Products.AddRange(
-            new TestProduct
-            {
-                Id = Guid.NewGuid(),
-                Name = "P1",
-                Price = 10,
-            },
-            new TestProduct
-            {
-                Id = Guid.NewGuid(),
-                Name = "P2",
-                Price = 50,
-            },
-            new TestProduct
-            {
-                Id = Guid.NewGuid(),
-                Name = "P3",
-                Price = 100,
-            }
+            new TestProduct(Guid.NewGuid()) { Name = "P1", Price = 10 },
+            new TestProduct(Guid.NewGuid()) { Name = "P2", Price = 50 },
+            new TestProduct(Guid.NewGuid()) { Name = "P3", Price = 100 }
         );
         await context.SaveChangesAsync();
 
@@ -105,24 +90,9 @@ public class FilterOperatorTests
         // Arrange
         using var context = TestDbContext.Create();
         context.Products.AddRange(
-            new TestProduct
-            {
-                Id = Guid.NewGuid(),
-                Name = "A",
-                Price = 10,
-            },
-            new TestProduct
-            {
-                Id = Guid.NewGuid(),
-                Name = "A",
-                Price = 50,
-            },
-            new TestProduct
-            {
-                Id = Guid.NewGuid(),
-                Name = "B",
-                Price = 10,
-            }
+            new TestProduct(Guid.NewGuid()) { Name = "A", Price = 10 },
+            new TestProduct(Guid.NewGuid()) { Name = "A", Price = 50 },
+            new TestProduct(Guid.NewGuid()) { Name = "B", Price = 10 }
         );
         await context.SaveChangesAsync();
 
@@ -155,18 +125,8 @@ public class FilterOperatorTests
         // Arrange
         using var context = TestDbContext.Create();
         context.Products.AddRange(
-            new TestProduct
-            {
-                Id = Guid.NewGuid(),
-                Name = "WithDesc",
-                Description = "Exists",
-            },
-            new TestProduct
-            {
-                Id = Guid.NewGuid(),
-                Name = "NoDesc",
-                Description = null,
-            }
+            new TestProduct(Guid.NewGuid()) { Name = "WithDesc", Description = "Exists" },
+            new TestProduct(Guid.NewGuid()) { Name = "NoDesc", Description = null }
         );
         await context.SaveChangesAsync();
 
@@ -191,8 +151,8 @@ public class FilterOperatorTests
         // Arrange
         using var context = TestDbContext.Create();
         context.Products.AddRange(
-            new TestProduct { Id = Guid.NewGuid(), Name = "Apple" },
-            new TestProduct { Id = Guid.NewGuid(), Name = "Banana" }
+            new TestProduct(Guid.NewGuid()) { Name = "Apple" },
+            new TestProduct(Guid.NewGuid()) { Name = "Banana" }
         );
         await context.SaveChangesAsync();
 

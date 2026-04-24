@@ -15,8 +15,8 @@ public sealed class SoftDeleteQueryTests
     {
         // Arrange - QF-01
         using TestDbContext context = TestDbContext.Create();
-        TestProduct activeProduct = new() { Id = Guid.NewGuid(), Name = "Active" };
-        TestProduct deletedProduct = new() { Id = Guid.NewGuid(), Name = "Deleted" };
+        TestProduct activeProduct = new(Guid.NewGuid()) { Name = "Active" };
+        TestProduct deletedProduct = new(Guid.NewGuid()) { Name = "Deleted" };
 
         await context.Products.AddRangeAsync(activeProduct, deletedProduct);
         _ = await context.SaveChangesAsync();
@@ -37,8 +37,8 @@ public sealed class SoftDeleteQueryTests
     {
         // Arrange - QF-02
         using TestDbContext context = TestDbContext.Create();
-        TestProduct activeProduct = new() { Id = Guid.NewGuid(), Name = "Active" };
-        TestProduct deletedProduct = new() { Id = Guid.NewGuid(), Name = "Deleted" };
+        TestProduct activeProduct = new(Guid.NewGuid()) { Name = "Active" };
+        TestProduct deletedProduct = new(Guid.NewGuid()) { Name = "Deleted" };
 
         await context.Products.AddRangeAsync(activeProduct, deletedProduct);
         _ = await context.SaveChangesAsync();

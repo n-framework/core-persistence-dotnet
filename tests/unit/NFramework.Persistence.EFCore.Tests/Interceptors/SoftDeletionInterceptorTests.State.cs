@@ -15,7 +15,7 @@ public sealed class SoftDeleteStateTests
     {
         // Arrange - SU-01
         using TestDbContext context = TestDbContext.Create();
-        TestProduct product = new() { Id = Guid.NewGuid(), Name = "Original" };
+        TestProduct product = new(Guid.NewGuid()) { Name = "Original" };
 
         await context.Products.AddAsync(product);
         _ = await context.SaveChangesAsync();
@@ -36,7 +36,7 @@ public sealed class SoftDeleteStateTests
     {
         // Arrange - SU-04
         using TestDbContext context = TestDbContext.Create();
-        TestProduct product = new() { Id = Guid.NewGuid(), Name = "Original" };
+        TestProduct product = new(Guid.NewGuid()) { Name = "Original" };
 
         await context.Products.AddAsync(product);
         _ = await context.SaveChangesAsync();
@@ -54,13 +54,8 @@ public sealed class SoftDeleteStateTests
     {
         // Arrange - CB-04 (Non-deletable child logic)
         using TestDbContext context = TestDbContext.Create();
-        TestOrder order = new() { Id = Guid.NewGuid(), OrderNumber = "ORD-009" };
-        TestOrderLog log = new()
-        {
-            Id = Guid.NewGuid(),
-            OrderId = order.Id,
-            Message = "Created",
-        };
+        TestOrder order = new(Guid.NewGuid()) { OrderNumber = "ORD-009" };
+        TestOrderLog log = new(Guid.NewGuid()) { OrderId = order.Id, Message = "Created" };
 
         await context.Orders.AddAsync(order);
         await context.OrderLogs.AddAsync(log);

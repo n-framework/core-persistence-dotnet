@@ -15,19 +15,9 @@ public sealed class CascadeSoftDeleteTests
     {
         // Arrange
         using TestDbContext context = TestDbContext.Create();
-        TestOrder order = new() { Id = Guid.NewGuid(), OrderNumber = "ORD-001" };
-        TestOrderItem item1 = new()
-        {
-            Id = Guid.NewGuid(),
-            OrderId = order.Id,
-            Description = "Item 1",
-        };
-        TestOrderItem item2 = new()
-        {
-            Id = Guid.NewGuid(),
-            OrderId = order.Id,
-            Description = "Item 2",
-        };
+        TestOrder order = new(Guid.NewGuid()) { OrderNumber = "ORD-001" };
+        TestOrderItem item1 = new(Guid.NewGuid()) { OrderId = order.Id, Description = "Item 1" };
+        TestOrderItem item2 = new(Guid.NewGuid()) { OrderId = order.Id, Description = "Item 2" };
 
         await context.Orders.AddAsync(order);
         await context.OrderItems.AddRangeAsync(item1, item2);
@@ -64,13 +54,8 @@ public sealed class CascadeSoftDeleteTests
     {
         // Arrange
         using TestDbContext context = TestDbContext.Create();
-        TestOrder order = new() { Id = Guid.NewGuid(), OrderNumber = "ORD-002" };
-        TestOrderItem item = new()
-        {
-            Id = Guid.NewGuid(),
-            OrderId = order.Id,
-            Description = "Single Item",
-        };
+        TestOrder order = new(Guid.NewGuid()) { OrderNumber = "ORD-002" };
+        TestOrderItem item = new(Guid.NewGuid()) { OrderId = order.Id, Description = "Single Item" };
 
         await context.Orders.AddAsync(order);
         await context.OrderItems.AddAsync(item);
@@ -92,13 +77,8 @@ public sealed class CascadeSoftDeleteTests
     {
         // Arrange
         using TestDbContext context = TestDbContext.Create();
-        TestOrder order = new() { Id = Guid.NewGuid(), OrderNumber = "ORD-003" };
-        TestOrderItem item = new()
-        {
-            Id = Guid.NewGuid(),
-            OrderId = order.Id,
-            Description = "Pre-deleted",
-        };
+        TestOrder order = new(Guid.NewGuid()) { OrderNumber = "ORD-003" };
+        TestOrderItem item = new(Guid.NewGuid()) { OrderId = order.Id, Description = "Pre-deleted" };
 
         await context.Orders.AddAsync(order);
         await context.OrderItems.AddAsync(item);
@@ -128,7 +108,7 @@ public sealed class CascadeSoftDeleteTests
     {
         // Arrange
         using TestDbContext context = TestDbContext.Create();
-        TestOrder order = new() { Id = Guid.NewGuid(), OrderNumber = "ORD-004" };
+        TestOrder order = new(Guid.NewGuid()) { OrderNumber = "ORD-004" };
 
         await context.Orders.AddAsync(order);
         _ = await context.SaveChangesAsync();
@@ -148,7 +128,7 @@ public sealed class CascadeSoftDeleteTests
     {
         // Arrange — TestCategory is AuditableEntity, NOT SoftDeletableEntity
         using TestDbContext context = TestDbContext.Create();
-        TestCategory category = new() { Id = 1, Name = "Electronics" };
+        TestCategory category = new(1) { Name = "Electronics" };
 
         await context.Categories.AddAsync(category);
         _ = await context.SaveChangesAsync();
@@ -167,26 +147,11 @@ public sealed class CascadeSoftDeleteTests
     {
         // Arrange
         using TestDbContext context = TestDbContext.Create();
-        TestOrder order1 = new() { Id = Guid.NewGuid(), OrderNumber = "ORD-005" };
-        TestOrder order2 = new() { Id = Guid.NewGuid(), OrderNumber = "ORD-006" };
-        TestOrderItem item1 = new()
-        {
-            Id = Guid.NewGuid(),
-            OrderId = order1.Id,
-            Description = "Item A",
-        };
-        TestOrderItem item2 = new()
-        {
-            Id = Guid.NewGuid(),
-            OrderId = order2.Id,
-            Description = "Item B",
-        };
-        TestOrderItem item3 = new()
-        {
-            Id = Guid.NewGuid(),
-            OrderId = order2.Id,
-            Description = "Item C",
-        };
+        TestOrder order1 = new(Guid.NewGuid()) { OrderNumber = "ORD-005" };
+        TestOrder order2 = new(Guid.NewGuid()) { OrderNumber = "ORD-006" };
+        TestOrderItem item1 = new(Guid.NewGuid()) { OrderId = order1.Id, Description = "Item A" };
+        TestOrderItem item2 = new(Guid.NewGuid()) { OrderId = order2.Id, Description = "Item B" };
+        TestOrderItem item3 = new(Guid.NewGuid()) { OrderId = order2.Id, Description = "Item C" };
 
         await context.Orders.AddRangeAsync(order1, order2);
         await context.OrderItems.AddRangeAsync(item1, item2, item3);
@@ -211,19 +176,9 @@ public sealed class CascadeSoftDeleteTests
     {
         // Arrange
         using TestDbContext context = TestDbContext.Create();
-        TestOrder order = new() { Id = Guid.NewGuid(), OrderNumber = "ORD-007" };
-        TestOrderItem item = new()
-        {
-            Id = Guid.NewGuid(),
-            OrderId = order.Id,
-            Description = "Item X",
-        };
-        TestOrderSubItem subItem = new()
-        {
-            Id = Guid.NewGuid(),
-            ItemId = item.Id,
-            Details = "Sub-item Y",
-        };
+        TestOrder order = new(Guid.NewGuid()) { OrderNumber = "ORD-007" };
+        TestOrderItem item = new(Guid.NewGuid()) { OrderId = order.Id, Description = "Item X" };
+        TestOrderSubItem subItem = new(Guid.NewGuid()) { ItemId = item.Id, Details = "Sub-item Y" };
 
         await context.Orders.AddAsync(order);
         await context.OrderItems.AddAsync(item);
@@ -253,19 +208,9 @@ public sealed class CascadeSoftDeleteTests
     {
         // Arrange
         using TestDbContext context = TestDbContext.Create();
-        TestEmployee ceo = new() { Id = Guid.NewGuid(), Name = "CEO" };
-        TestEmployee vp = new()
-        {
-            Id = Guid.NewGuid(),
-            Name = "VP",
-            ManagerId = ceo.Id,
-        };
-        TestEmployee dev = new()
-        {
-            Id = Guid.NewGuid(),
-            Name = "Dev",
-            ManagerId = vp.Id,
-        };
+        TestEmployee ceo = new(Guid.NewGuid()) { Name = "CEO" };
+        TestEmployee vp = new(Guid.NewGuid()) { Name = "VP", ManagerId = ceo.Id };
+        TestEmployee dev = new(Guid.NewGuid()) { Name = "Dev", ManagerId = vp.Id };
 
         await context.Employees.AddRangeAsync(ceo, vp, dev);
         _ = await context.SaveChangesAsync();
@@ -289,13 +234,8 @@ public sealed class CascadeSoftDeleteTests
     {
         // Arrange
         using TestDbContext context = TestDbContext.Create();
-        TestOrder order = new() { Id = Guid.NewGuid(), OrderNumber = "ORD-008" };
-        TestOrderItem item = new()
-        {
-            Id = Guid.NewGuid(),
-            OrderId = order.Id,
-            Description = "Item Z",
-        };
+        TestOrder order = new(Guid.NewGuid()) { OrderNumber = "ORD-008" };
+        TestOrderItem item = new(Guid.NewGuid()) { OrderId = order.Id, Description = "Item Z" };
 
         await context.Orders.AddAsync(order);
         await context.OrderItems.AddAsync(item);
@@ -318,8 +258,8 @@ public sealed class CascadeSoftDeleteTests
     {
         // Arrange
         using TestDbContext context = TestDbContext.Create();
-        TestEmployee emp1 = new() { Id = Guid.NewGuid(), Name = "Emp1" };
-        TestEmployee emp2 = new() { Id = Guid.NewGuid(), Name = "Emp2" };
+        TestEmployee emp1 = new(Guid.NewGuid()) { Name = "Emp1" };
+        TestEmployee emp2 = new(Guid.NewGuid()) { Name = "Emp2" };
 
         emp1.ManagerId = emp2.Id;
         emp2.ManagerId = emp1.Id;
