@@ -20,7 +20,7 @@ public class PageableQueryOptionTests
     {
         var options = new PageableQueryOption<TestEntity>();
         options.Predicate.ShouldBeNull();
-        options.Page.Index.ShouldBe(0u);
-        options.Page.Size.ShouldBe(10u);
+        options.Page.Index.ShouldBe(0);
+        options.Page.Size.ShouldBe(10);
     }
 }

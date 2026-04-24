@@ -13,8 +13,8 @@ public class PageableDynamicQueryOptionTests
         var query = new PageableDynamicQueryOption();
         query.Filters.ShouldBeNull();
         query.Orders.ShouldBeNull();
-        query.Page.Index.ShouldBe(0u);
-        query.Page.Size.ShouldBe(10u);
+        query.Page.Index.ShouldBe(0);
+        query.Page.Size.ShouldBe(10);
     }
 
     [Fact]
@@ -36,7 +36,7 @@ public class PageableDynamicQueryOptionTests
         };
 
         query.Filters.Count.ShouldBe(1);
-        query.Page.Index.ShouldBe(2u);
-        query.Page.Size.ShouldBe(25u);
+        query.Page.Index.ShouldBe(2);
+        query.Page.Size.ShouldBe(25);
     }
 }

@@ -42,7 +42,7 @@ public static class PaginationExtensions
 
             List<T> items = await source
                 .Skip((int)skipItems)
-                .Take((int)paging.Size)
+                .Take(paging.Size)
                 .ToListAsync(cancellationToken)
                 .ConfigureAwait(false);
 
