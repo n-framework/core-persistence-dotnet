@@ -72,7 +72,7 @@ public class BulkOperationEdgeCaseTests
     }
 
     [Fact]
-    public async Task BulkUpdateAsync_MixedNullsAndValid_UpdatesOnlyValid()
+    public async Task BulkUpdateAsync_MixedNullsAndValid_ThrowsArgumentException()
     {
         using var context = TestDbContext.Create();
         var repo = new TestProductRepository(context);
@@ -88,10 +88,7 @@ public class BulkOperationEdgeCaseTests
         p1.Name = "Updated";
         var items = new List<TestProduct> { p1, null! };
 
-        var result = await repo.BulkUpdateAsync(items);
-        await repo.SaveChangesAsync();
-
-        Assert.Single(result);
-        Assert.Equal("Updated", (await repo.GetByIdAsync(p1.Id))!.Name);
+        var ex = await Assert.ThrowsAsync<ArgumentException>(() => repo.BulkUpdateAsync(items));
+        Assert.Contains("Collection contains null entities.", ex.Message, StringComparison.OrdinalIgnoreCase);
     }
 }

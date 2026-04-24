@@ -69,13 +69,14 @@ public abstract partial class EFCoreRepository<TEntity, TId, TContext>
     )
     {
         ArgumentNullException.ThrowIfNull(entities);
-        var validEntities = entities.Where(e => e != null).ToList();
+        if (entities.Any(e => e == null))
+            throw new ArgumentException("Collection contains null entities.", nameof(entities));
 
-        if (validEntities.Count == 0)
+        if (entities.Count == 0)
             return entities;
 
-        await DbSet.AddRangeAsync(validEntities, cancellationToken).ConfigureAwait(false);
-        return validEntities;
+        await DbSet.AddRangeAsync(entities, cancellationToken).ConfigureAwait(false);
+        return entities;
     }
 
     /// <inheritdoc />
@@ -85,14 +86,15 @@ public abstract partial class EFCoreRepository<TEntity, TId, TContext>
     )
     {
         ArgumentNullException.ThrowIfNull(entities);
-        var validEntities = entities.Where(e => e != null).ToList();
+        if (entities.Any(e => e == null))
+            throw new ArgumentException("Collection contains null entities.", nameof(entities));
 
-        if (validEntities.Count == 0)
-            return Task.FromResult<ICollection<TEntity>>(validEntities);
+        if (entities.Count == 0)
+            return Task.FromResult(entities);
 
-        DbSet.UpdateRange(validEntities);
+        DbSet.UpdateRange(entities);
 
-        return Task.FromResult<ICollection<TEntity>>(validEntities);
+        return Task.FromResult(entities);
     }
 
     /// <inheritdoc />
@@ -102,13 +104,14 @@ public abstract partial class EFCoreRepository<TEntity, TId, TContext>
     )
     {
         ArgumentNullException.ThrowIfNull(entities);
-        var validEntities = entities.Where(e => e != null).ToList();
+        if (entities.Any(e => e == null))
+            throw new ArgumentException("Collection contains null entities.", nameof(entities));
 
-        if (validEntities.Count == 0)
-            return Task.FromResult<ICollection<TEntity>>(validEntities);
+        if (entities.Count == 0)
+            return Task.FromResult(entities);
 
-        DbSet.RemoveRange(validEntities);
-        return Task.FromResult<ICollection<TEntity>>(validEntities);
+        DbSet.RemoveRange(entities);
+        return Task.FromResult(entities);
     }
 
     /// <inheritdoc />

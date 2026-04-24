@@ -15,36 +15,45 @@ public class BulkOperationErrorTests
         : EFCoreRepository<TestProduct, Guid, TestDbContext>(context);
 
     [Fact]
-    public async Task BulkAddAsync_WithNullItems_ShouldLogWarningAndSkip()
+    public async Task BulkAddAsync_WithNullItems_ShouldThrowArgumentException()
     {
         // Arrange
         using var context = TestDbContext.Create();
         var repo = new BulkTestRepository(context);
 
         // Act & Assert
-        await repo.BulkAddAsync(new TestProduct[] { null! }).ShouldNotThrowAsync();
+        var ex = await Should.ThrowAsync<ArgumentException>(async () =>
+            await repo.BulkAddAsync(new TestProduct[] { null! })
+        );
+        ex.Message.ShouldContain("Collection contains null entities.");
     }
 
     [Fact]
-    public async Task BulkUpdateAsync_WithNullItems_ShouldLogWarningAndSkip()
+    public async Task BulkUpdateAsync_WithNullItems_ShouldThrowArgumentException()
     {
         // Arrange
         using var context = TestDbContext.Create();
         var repo = new BulkTestRepository(context);
 
         // Act & Assert
-        await repo.BulkUpdateAsync(new TestProduct[] { null! }).ShouldNotThrowAsync();
+        var ex = await Should.ThrowAsync<ArgumentException>(async () =>
+            await repo.BulkUpdateAsync(new TestProduct[] { null! })
+        );
+        ex.Message.ShouldContain("Collection contains null entities.");
     }
 
     [Fact]
-    public async Task BulkDeleteAsync_WithNullItems_ShouldLogWarningAndSkip()
+    public async Task BulkDeleteAsync_WithNullItems_ShouldThrowArgumentException()
     {
         // Arrange
         using var context = TestDbContext.Create();
         var repo = new BulkTestRepository(context);
 
         // Act & Assert
-        await repo.BulkDeleteAsync(new TestProduct[] { null! }).ShouldNotThrowAsync();
+        var ex = await Should.ThrowAsync<ArgumentException>(async () =>
+            await repo.BulkDeleteAsync(new TestProduct[] { null! })
+        );
+        ex.Message.ShouldContain("Collection contains null entities.");
     }
 
     [Fact]
