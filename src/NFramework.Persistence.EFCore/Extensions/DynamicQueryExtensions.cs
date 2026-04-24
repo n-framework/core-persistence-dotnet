@@ -39,14 +39,15 @@ public static partial class DynamicQueryExtensions
         /// <summary>
         /// Applies a collection of <see cref="Order"/> descriptors to the query.
         /// </summary>
+        [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(
+            "Dynamic query translation uses reflection-based System.Linq.Dynamic.Core which is not fully trim-safe."
+        )]
         public IQueryable<T> ApplyOrders(IReadOnlyCollection<Order>? orders)
         {
             if (orders == null || orders.Count == 0)
                 return source;
 
-            var invalidOrder = orders.FirstOrDefault(o =>
-                string.IsNullOrWhiteSpace(o.Field) || !FieldNameRegex.IsMatch(o.Field)
-            );
+            var invalidOrder = orders.FirstOrDefault(o => !IsValidField(source, o.Field));
             if (invalidOrder != null)
                 throw new ArgumentException($"Invalid or unsafe order field name: '{invalidOrder.Field}'");
 
@@ -67,7 +68,7 @@ public static partial class DynamicQueryExtensions
         if (filter.Logic.HasValue && filter.Filters is { Count: > 0 })
             return ApplyLogicGroup(source, filter);
 
-        (string expression, object?[] args) = BuildFilterExpression(filter);
+        (string expression, object?[] args) = BuildFilterExpression(source, filter);
         return source.Where(expression, args);
     }
 
@@ -83,7 +84,7 @@ public static partial class DynamicQueryExtensions
 
         foreach (Filter childFilter in group.Filters!)
         {
-            (string expr, object?[] args) = BuildFilterExpression(childFilter, paramIndex);
+            (string expr, object?[] args) = BuildFilterExpression(source, childFilter, paramIndex);
             parts.Add($"({expr})");
             allArgs.AddRange(args);
             paramIndex += args.Length;
@@ -98,7 +99,12 @@ public static partial class DynamicQueryExtensions
     [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(
         "Dynamic query translation uses reflection-based System.Linq.Dynamic.Core which is not fully trim-safe."
     )]
-    private static (string Expression, object?[] Args) BuildFilterExpression(Filter filter, int paramOffset = 0)
+    private static (string Expression, object?[] Args) BuildFilterExpression<T>(
+        IQueryable<T> source,
+        Filter filter,
+        int paramOffset = 0
+    )
+        where T : class
     {
         var results = filter.Validate(null!);
         foreach (var result in results)
@@ -108,7 +114,7 @@ public static partial class DynamicQueryExtensions
         }
 
         string fieldName = filter.Field;
-        if (string.IsNullOrWhiteSpace(fieldName) || !FieldNameRegex.IsMatch(fieldName))
+        if (!IsValidField(source, fieldName))
             throw new ArgumentException($"Invalid or unsafe field name: '{fieldName}'");
 
         string paramName = $"@{paramOffset}";
@@ -145,5 +151,89 @@ public static partial class DynamicQueryExtensions
             expr = $"!({expr})";
 
         return (expr, args);
+    }
+
+    [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(
+        "Dynamic query validation uses reflection or EF Core metadata which is not fully trim-safe."
+    )]
+    private static bool IsValidField<T>(IQueryable<T> source, string? fieldName)
+        where T : class
+    {
+        if (string.IsNullOrWhiteSpace(fieldName) || !FieldNameRegex.IsMatch(fieldName))
+            return false;
+
+        if (source is Microsoft.EntityFrameworkCore.Infrastructure.IInfrastructure<IServiceProvider> infrastructure)
+        {
+            var model = (Microsoft.EntityFrameworkCore.Metadata.IModel?)
+                infrastructure.Instance.GetService(typeof(Microsoft.EntityFrameworkCore.Metadata.IModel));
+
+            if (model != null)
+            {
+                var entityType = model.FindEntityType(typeof(T));
+                if (entityType != null)
+                {
+                    string[] parts = fieldName.Split('.');
+                    Microsoft.EntityFrameworkCore.Metadata.IReadOnlyEntityType? currentType = entityType;
+
+                    for (int i = 0; i < parts.Length; i++)
+                    {
+                        if (currentType == null)
+                            return false;
+
+                        string part = parts[i];
+
+                        var property = currentType.FindProperty(part);
+                        var navigation = currentType.FindNavigation(part);
+
+                        if (property == null && navigation == null)
+                            return false;
+
+                        if (i < parts.Length - 1)
+                        {
+                            if (navigation == null)
+                                return false;
+
+                            currentType = navigation.TargetEntityType;
+                        }
+                    }
+
+                    return true;
+                }
+            }
+        }
+
+        // Fallback for non-EF Core queryables (e.g., in-memory mocks using Array.AsQueryable)
+        Type currentReflectionType = typeof(T);
+        foreach (string part in fieldName.Split('.'))
+        {
+            System.Reflection.PropertyInfo? propInfo = currentReflectionType.GetProperty(
+                part,
+                System.Reflection.BindingFlags.IgnoreCase
+                    | System.Reflection.BindingFlags.Public
+                    | System.Reflection.BindingFlags.Instance
+            );
+
+            if (propInfo == null)
+                return false;
+
+            currentReflectionType = propInfo.PropertyType;
+
+            if (
+                currentReflectionType != typeof(string)
+                && typeof(System.Collections.IEnumerable).IsAssignableFrom(currentReflectionType)
+            )
+            {
+                Type? elementType = currentReflectionType.IsGenericType
+                    ? currentReflectionType.GetGenericArguments().FirstOrDefault()
+                    : currentReflectionType.GetElementType();
+
+                if (elementType != null)
+                {
+                    currentReflectionType = elementType;
+                }
+            }
+        }
+
+        return true;
     }
 }
