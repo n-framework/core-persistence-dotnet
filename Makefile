@@ -8,6 +8,7 @@ help:
 	@echo "  make format - Run formatters"
 	@echo "  make lint   - Run lint checks"
 	@echo "  make test  - Run test suites"
+	@echo "  make test-aot - Run Native AOT smoke tests"
 	@echo "  make clean - Clean build artifacts"
 
 setup:
@@ -24,6 +25,9 @@ lint:
 
 test:
 	./scripts/test.sh
+
+test-aot:
+	dotnet publish tests/smoke/NFramework.Persistence.AotSample/NFramework.Persistence.AotSample.csproj -c Release -r linux-x64 --self-contained /p:PublishAot=true
 
 clean:
 	dotnet clean NFramework.Persistence.slnx

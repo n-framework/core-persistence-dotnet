@@ -23,6 +23,7 @@ bld/
 [Ll]og/
 [Ll]ogs/
 *.log
+*.txt
 
 # .NET Core
 project.lock.json
