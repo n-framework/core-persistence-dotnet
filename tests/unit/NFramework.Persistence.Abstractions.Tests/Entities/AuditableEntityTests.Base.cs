@@ -3,7 +3,7 @@ using Shouldly;
 
 namespace NFramework.Persistence.Abstractions.Tests.Entities;
 
-public class AuditableEntityTests
+public partial class AuditableEntityTests
 {
     private sealed class TestAuditableEntity : AuditableEntity<Guid>;
 

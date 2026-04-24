@@ -3,7 +3,7 @@ using Shouldly;
 
 namespace NFramework.Persistence.Abstractions.Tests.Dynamic;
 
-public class OrderTests
+public partial class OrderTests
 {
     [Fact]
     public void Order_DefaultValues()

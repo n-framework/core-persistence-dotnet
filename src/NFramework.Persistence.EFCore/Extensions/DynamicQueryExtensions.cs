@@ -106,11 +106,10 @@ public static partial class DynamicQueryExtensions
     )
         where T : class
     {
-        var results = filter.Validate(null!);
-        foreach (var result in results)
+        var errors = filter.Validate().ToList();
+        if (errors.Count > 0)
         {
-            if (result != System.ComponentModel.DataAnnotations.ValidationResult.Success)
-                throw new System.ComponentModel.DataAnnotations.ValidationException(result, null, filter);
+            throw new ArgumentException($"Filter validation failed: {string.Join("; ", errors)}");
         }
 
         string fieldName = filter.Field;

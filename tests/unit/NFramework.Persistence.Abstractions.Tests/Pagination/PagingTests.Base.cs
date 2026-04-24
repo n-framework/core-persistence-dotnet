@@ -3,7 +3,7 @@ using Shouldly;
 
 namespace NFramework.Persistence.Abstractions.Tests.Pagination;
 
-public class PagingTests
+public partial class PagingTests
 {
     [Fact]
     public void Paging_DefaultValues()

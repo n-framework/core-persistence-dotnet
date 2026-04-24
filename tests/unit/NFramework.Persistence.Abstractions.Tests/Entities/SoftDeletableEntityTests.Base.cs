@@ -3,7 +3,7 @@ using Shouldly;
 
 namespace NFramework.Persistence.Abstractions.Tests.Entities;
 
-public class SoftDeletableEntityTests
+public partial class SoftDeletableEntityTests
 {
     private sealed class TestSoftDeletableEntity : SoftDeletableEntity<int>;
 

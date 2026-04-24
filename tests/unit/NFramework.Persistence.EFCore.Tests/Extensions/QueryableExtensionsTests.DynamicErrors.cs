@@ -1,4 +1,3 @@
-using System.ComponentModel.DataAnnotations;
 using NFramework.Persistence.Abstractions.Dynamic;
 using NFramework.Persistence.Abstractions.Repositories;
 using NFramework.Persistence.EFCore.Tests.Helpers;
@@ -43,13 +42,10 @@ public class DynamicQueryErrorTests
             Value = 123,
         };
 
-        var validationContext = new ValidationContext(filter);
-        var results = new List<ValidationResult>();
+        var errors = filter.Validate().ToList();
 
-        bool isValid = Validator.TryValidateObject(filter, validationContext, results, true);
-
-        isValid.ShouldBeFalse();
-        results.ShouldContain(r => r.ErrorMessage != null && r.ErrorMessage.Contains("requires an IEnumerable value"));
+        errors.ShouldNotBeEmpty();
+        errors.ShouldContain(err => err.Contains("requires an IEnumerable value"));
     }
 
     [Fact]
@@ -62,13 +58,10 @@ public class DynamicQueryErrorTests
             Value = "test",
         };
 
-        var validationContext = new ValidationContext(filter);
-        var results = new List<ValidationResult>();
+        var errors = filter.Validate().ToList();
 
-        bool isValid = Validator.TryValidateObject(filter, validationContext, results, true);
-
-        isValid.ShouldBeFalse();
-        results.ShouldContain(r => r.ErrorMessage != null && r.ErrorMessage.Contains("does not expect a value"));
+        errors.ShouldNotBeEmpty();
+        errors.ShouldContain(err => err.Contains("does not expect a value"));
     }
 
     [Fact]
@@ -81,12 +74,9 @@ public class DynamicQueryErrorTests
             Value = null,
         };
 
-        var validationContext = new ValidationContext(filter);
-        var results = new List<ValidationResult>();
+        var errors = filter.Validate().ToList();
 
-        bool isValid = Validator.TryValidateObject(filter, validationContext, results, true);
-
-        isValid.ShouldBeFalse();
-        results.ShouldContain(r => r.ErrorMessage != null && r.ErrorMessage.Contains("requires a comparison value"));
+        errors.ShouldNotBeEmpty();
+        errors.ShouldContain(err => err.Contains("requires a comparison value"));
     }
 }

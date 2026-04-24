@@ -3,7 +3,7 @@ using Shouldly;
 
 namespace NFramework.Persistence.Abstractions.Tests.Dynamic;
 
-public class FilterTests
+public partial class FilterTests
 {
     [Fact]
     public void Filter_DefaultValues_ShouldBeEmpty()

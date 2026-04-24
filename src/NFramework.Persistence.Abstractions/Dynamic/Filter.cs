@@ -1,5 +1,3 @@
-using System.ComponentModel.DataAnnotations;
-
 namespace NFramework.Persistence.Abstractions.Dynamic;
 
 /// <summary>
@@ -11,7 +9,7 @@ namespace NFramework.Persistence.Abstractions.Dynamic;
     "S2325:Methods and properties that don't access instance data should be 'static'",
     Justification = "False positive with C# 14 field keyword"
 )]
-public class Filter : IValidatableObject
+public class Filter
 {
     public Filter() { }
 
@@ -69,64 +67,33 @@ public class Filter : IValidatableObject
     /// <summary>
     /// Validates the filter state.
     /// </summary>
-    public IEnumerable<ValidationResult> Validate(ValidationContext validationContext) => validateInternal();
-
-    /// <summary>
-    /// Performs internal recursive validation.
-    /// This helper is separated from the public Validate method to ensure Native AOT compatibility
-    /// and to manage recursive validation of nested filters without reflection-heavy ValidationContext issues.
-    /// </summary>
-    private IEnumerable<ValidationResult> validateInternal()
+    public IEnumerable<string> Validate()
     {
         if (string.IsNullOrWhiteSpace(Field) && !Logic.HasValue)
-        {
-            yield return new ValidationResult(
-                "Filter must have either a Field or Logic with nested filters.",
-                [nameof(Field), nameof(Logic)]
-            );
-        }
+            yield return "Filter must have either a Field or Logic with nested filters.";
 
         if (!Logic.HasValue)
-        {
             if (Operator is FilterOperator.IsNull or FilterOperator.IsNotNull)
             {
                 if (Value != null)
-                    yield return new ValidationResult($"Operator {Operator} does not expect a value.", [nameof(Value)]);
+                    yield return $"Operator {Operator} does not expect a value.";
             }
             else if (Value == null)
-                yield return new ValidationResult($"Operator {Operator} requires a comparison value.", [nameof(Value)]);
+                yield return $"Operator {Operator} requires a comparison value.";
             else if (Operator == FilterOperator.In && Value is not System.Collections.IEnumerable)
-                yield return new ValidationResult(
-                    $"Operator {Operator} requires an IEnumerable value.",
-                    [nameof(Value)]
-                );
-        }
+                yield return $"Operator {Operator} requires an IEnumerable value.";
 
         if (Logic.HasValue && (Filters == null || Filters.Count == 0))
-        {
-            yield return new ValidationResult(
-                "Logic operator requires at least one nested filter.",
-                [nameof(Logic), nameof(Filters)]
-            );
-        }
+            yield return "Logic operator requires at least one nested filter.";
 
         if (!Logic.HasValue && Filters != null && Filters.Count > 0)
-        {
-            yield return new ValidationResult(
-                "Nested filters require a logic operator.",
-                [nameof(Logic), nameof(Filters)]
-            );
-        }
+            yield return "Nested filters require a logic operator.";
 
         if (Filters != null)
-        {
-            foreach (var filter in Filters)
+            foreach (Filter filter in Filters)
             {
-                foreach (var result in filter.validateInternal())
-                {
+                foreach (string result in filter.Validate())
                     yield return result;
-                }
             }
-        }
     }
 }
