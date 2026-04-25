@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net11.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <PublishAot>true</PublishAot>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <!-- Suppress external AOT warnings (EFCore, DynamicLINQ, BCL) -->
+    <NoWarn>$(NoWarn);IL2104;IL3000;IL3053;IL2026;IL3050;IL3002</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../../src/NFramework.Persistence.EFCore/NFramework.Persistence.EFCore.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="11.0.0-preview.3.26207.106" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="11.0.0-preview.3.26207.106" />
+  </ItemGroup>
+</Project>
