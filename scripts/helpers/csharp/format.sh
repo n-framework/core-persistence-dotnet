@@ -11,11 +11,11 @@ cd "$REPO_ROOT"
 
 acore_log_section "🔧 Fixing C# code style violations (dotnet format)..."
 
-for slnx_file in "${REPO_ROOT}"/*.slnx; do
-	[ -f "$slnx_file" ] || continue
-	dotnet format whitespace "$slnx_file" --severity warn &> /dev/null || true
-	dotnet format style "$slnx_file" --severity warn &> /dev/null || true
-	dotnet format analyzers "$slnx_file" --severity warn &> /dev/null || true
+for slnx_file in $(fd -e slnx . "$REPO_ROOT"); do
+	found_slnx=("$slnx_file")
+	dotnet format whitespace "${found_slnx[0]}" --severity warn &> /dev/null || true
+	dotnet format style "${found_slnx[0]}" --severity warn &> /dev/null || true
+	dotnet format analyzers "${found_slnx[0]}" --severity warn &> /dev/null || true
 done
 
 acore_log_section "🎨 Formatting C# code with CSharpier..."
