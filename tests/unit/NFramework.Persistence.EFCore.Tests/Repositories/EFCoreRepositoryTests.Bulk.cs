@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using NFramework.Persistence.EFCore.Tests.Helpers;
+using UnionRailway;
 using Xunit;
 
 namespace NFramework.Persistence.EFCore.Tests.Repositories;
@@ -12,7 +13,7 @@ public class BulkOperationEdgeCaseTests
         using var context = TestDbContext.Create();
         var repo = new TestProductRepository(context);
 
-        var result = await repo.BulkAddAsync(new List<TestProduct>());
+        var result = (await repo.BulkAddAsync(new List<TestProduct>())).Unwrap();
 
         Assert.Empty(result);
         Assert.Equal(0, await context.Products.CountAsync());
@@ -37,8 +38,8 @@ public class BulkOperationEdgeCaseTests
             .Select(i => new TestProduct(Guid.NewGuid()) { Name = $"Product {i}", Price = i })
             .ToList();
 
-        var result = await repo.BulkAddAsync(products);
-        await repo.SaveChangesAsync();
+        var result = (await repo.BulkAddAsync(products)).Unwrap();
+        (await repo.SaveChangesAsync()).Unwrap();
 
         Assert.Equal(100, result.Count);
         Assert.Equal(100, await context.Products.CountAsync());
@@ -54,8 +55,8 @@ public class BulkOperationEdgeCaseTests
             .Select(i => new TestProduct(Guid.NewGuid()) { Name = $"Product {i}", Price = i })
             .ToList();
 
-        var result = await repo.BulkAddAsync(products);
-        await repo.SaveChangesAsync();
+        var result = (await repo.BulkAddAsync(products)).Unwrap();
+        (await repo.SaveChangesAsync()).Unwrap();
 
         Assert.Equal(1000, result.Count);
         Assert.Equal(1000, await context.Products.CountAsync());
@@ -67,8 +68,8 @@ public class BulkOperationEdgeCaseTests
         using var context = TestDbContext.Create();
         var repo = new TestProductRepository(context);
         var p1 = new TestProduct(Guid.NewGuid()) { Name = "Valid", Price = 10 };
-        await repo.AddAsync(p1);
-        await repo.SaveChangesAsync();
+        (await repo.AddAsync(p1)).Unwrap();
+        (await repo.SaveChangesAsync()).Unwrap();
 
         p1.Name = "Updated";
         var items = new List<TestProduct> { p1, null! };

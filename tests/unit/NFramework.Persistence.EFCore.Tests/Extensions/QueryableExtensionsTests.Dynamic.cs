@@ -3,6 +3,7 @@ using NFramework.Persistence.Abstractions.Pagination;
 using NFramework.Persistence.Abstractions.Repositories;
 using NFramework.Persistence.EFCore.Tests.Helpers;
 using Shouldly;
+using UnionRailway;
 using Xunit;
 
 namespace NFramework.Persistence.EFCore.Tests.Extensions;
@@ -19,15 +20,13 @@ public class DynamicQueryTests
         TestProductRepository repo = new(context);
 
         for (int i = 0; i < 25; i++)
-        {
             await repo.AddAsync(new TestProduct(Guid.NewGuid()) { Name = $"Product_{i}", Price = i * 1.0m });
-        }
 
         await repo.SaveChangesAsync();
 
-        PaginatedList<TestProduct> page1 = await repo.GetListAsync(
+        PaginatedList<TestProduct> page1 = (await repo.GetListAsync(
             new PageableQueryOption<TestProduct> { Page = new Paging(0, 10) }
-        );
+        )).Unwrap();
 
         page1.Items.Count.ShouldBe(10);
         page1.Meta.TotalCount.ShouldBe(25);
@@ -43,15 +42,13 @@ public class DynamicQueryTests
         TestProductRepository repo = new(context);
 
         for (int i = 0; i < 25; i++)
-        {
             await repo.AddAsync(new TestProduct(Guid.NewGuid()) { Name = $"Product_{i}", Price = i * 1.0m });
-        }
 
         await repo.SaveChangesAsync();
 
-        PaginatedList<TestProduct> lastPage = await repo.GetListAsync(
+        PaginatedList<TestProduct> lastPage = (await repo.GetListAsync(
             new PageableQueryOption<TestProduct> { Page = new Paging(2, 10) }
-        );
+        )).Unwrap();
 
         lastPage.Items.Count.ShouldBe(5);
         lastPage.Meta.HasPrevious.ShouldBeTrue();
@@ -72,16 +69,11 @@ public class DynamicQueryTests
         DynamicQueryOption options = new(
             Filters:
             [
-                new Filter
-                {
-                    Field = "Name",
-                    Operator = FilterOperator.Equal,
-                    Value = "Alpha",
-                },
+                new Filter { Field = "Name", Operator = FilterOperator.Equal, Value = "Alpha" },
             ]
         );
 
-        IReadOnlyList<TestProduct> results = await repo.GetAllByDynamicAsync(options);
+        IReadOnlyList<TestProduct> results = (await repo.GetAllByDynamicAsync(options)).Unwrap();
         results.Count.ShouldBe(2);
     }
 
@@ -99,16 +91,11 @@ public class DynamicQueryTests
         DynamicQueryOption options = new(
             Filters:
             [
-                new Filter
-                {
-                    Field = "Name",
-                    Operator = FilterOperator.Equal,
-                    Value = "A",
-                },
+                new Filter { Field = "Name", Operator = FilterOperator.Equal, Value = "A" },
             ]
         );
 
-        int count = await repo.CountByDynamicAsync(options);
+        int count = (await repo.CountByDynamicAsync(options)).Unwrap();
         count.ShouldBe(2);
     }
 
@@ -123,7 +110,7 @@ public class DynamicQueryTests
         await repo.SaveChangesAsync();
 
         DynamicQueryOption options = new();
-        IReadOnlyList<TestProduct> results = await repo.GetAllByDynamicAsync(options);
+        IReadOnlyList<TestProduct> results = (await repo.GetAllByDynamicAsync(options)).Unwrap();
         results.Count.ShouldBe(2);
     }
 
@@ -134,14 +121,12 @@ public class DynamicQueryTests
         TestProductRepository repo = new(context);
 
         for (int i = 0; i < 15; i++)
-        {
             await repo.AddAsync(new TestProduct(Guid.NewGuid()) { Name = $"DynProduct_{i}", Price = i * 1.0m });
-        }
 
         await repo.SaveChangesAsync();
 
         PageableDynamicQueryOption options = new() { Page = new Paging(0, 5) };
-        PaginatedList<TestProduct> result = await repo.GetListByDynamicAsync(options);
+        PaginatedList<TestProduct> result = (await repo.GetListByDynamicAsync(options)).Unwrap();
 
         result.Items.Count.ShouldBe(5);
         result.Meta.TotalCount.ShouldBe(15);
@@ -154,29 +139,15 @@ public class DynamicQueryTests
         using TestDbContext context = TestDbContext.Create();
         TestProductRepository repo = new(context);
 
-        await repo.AddAsync(
-            new TestProduct(Guid.NewGuid())
-            {
-                Name = "With Desc",
-                Description = "Exists",
-                Price = 10.0m,
-            }
-        );
-        await repo.AddAsync(
-            new TestProduct(Guid.NewGuid())
-            {
-                Name = "No Desc",
-                Description = null,
-                Price = 20.0m,
-            }
-        );
+        await repo.AddAsync(new TestProduct(Guid.NewGuid()) { Name = "With Desc", Description = "Exists", Price = 10.0m });
+        await repo.AddAsync(new TestProduct(Guid.NewGuid()) { Name = "No Desc", Description = null, Price = 20.0m });
         await repo.SaveChangesAsync();
 
         DynamicQueryOption options = new(
             Filters: [new Filter { Field = "Description", Operator = FilterOperator.IsNull }]
         );
 
-        IReadOnlyList<TestProduct> results = await repo.GetAllByDynamicAsync(options);
+        IReadOnlyList<TestProduct> results = (await repo.GetAllByDynamicAsync(options)).Unwrap();
         results.Count.ShouldBe(1);
         results[0].Price.ShouldBe(20.0m);
     }
@@ -195,16 +166,11 @@ public class DynamicQueryTests
         DynamicQueryOption options = new(
             Filters:
             [
-                new Filter
-                {
-                    Field = "Name",
-                    Operator = FilterOperator.StartsWith,
-                    Value = "Ap",
-                },
+                new Filter { Field = "Name", Operator = FilterOperator.StartsWith, Value = "Ap" },
             ]
         );
 
-        IReadOnlyList<TestProduct> results = await repo.GetAllByDynamicAsync(options);
+        IReadOnlyList<TestProduct> results = (await repo.GetAllByDynamicAsync(options)).Unwrap();
         results.Count.ShouldBe(2);
     }
 
@@ -224,16 +190,11 @@ public class DynamicQueryTests
         DynamicQueryOption options = new(
             Filters:
             [
-                new Filter
-                {
-                    Field = "Name",
-                    Operator = FilterOperator.In,
-                    Value = Filters,
-                },
+                new Filter { Field = "Name", Operator = FilterOperator.In, Value = Filters },
             ]
         );
 
-        IReadOnlyList<TestProduct> results = await repo.GetAllByDynamicAsync(options);
+        IReadOnlyList<TestProduct> results = (await repo.GetAllByDynamicAsync(options)).Unwrap();
         results.Count.ShouldBe(2);
     }
 
@@ -250,17 +211,11 @@ public class DynamicQueryTests
         DynamicQueryOption options = new(
             Filters:
             [
-                new Filter
-                {
-                    Field = "Name",
-                    Operator = FilterOperator.Equal,
-                    Value = "Apple",
-                    IsNot = true,
-                },
+                new Filter { Field = "Name", Operator = FilterOperator.Equal, Value = "Apple", IsNot = true },
             ]
         );
 
-        IReadOnlyList<TestProduct> results = await repo.GetAllByDynamicAsync(options);
+        IReadOnlyList<TestProduct> results = (await repo.GetAllByDynamicAsync(options)).Unwrap();
         results.Count.ShouldBe(1);
         results[0].Name.ShouldBe("Banana");
     }
@@ -271,47 +226,26 @@ public class DynamicQueryTests
         using TestDbContext context = TestDbContext.Create();
         TestProductRepository repo = new(context);
 
-        TestProduct active = await repo.AddAsync(new TestProduct(Guid.NewGuid()) { Name = "Active" });
-        TestProduct deleted = await repo.AddAsync(
-            new TestProduct(Guid.NewGuid())
-            {
-                Name = "Deleted",
-                IsDeleted = true,
-                DeletedAt = DateTime.UtcNow,
-            }
-        );
+        TestProduct active = (await repo.AddAsync(new TestProduct(Guid.NewGuid()) { Name = "Active" })).Unwrap();
+        TestProduct deleted = (await repo.AddAsync(
+            new TestProduct(Guid.NewGuid()) { Name = "Deleted", IsDeleted = true, DeletedAt = DateTime.UtcNow }
+        )).Unwrap();
         await repo.SaveChangesAsync();
 
         DynamicQueryOptionWithSoftDelete options = new(
-            Filters:
-            [
-                new Filter
-                {
-                    Field = "Name",
-                    Operator = FilterOperator.Contains,
-                    Value = "e",
-                },
-            ],
+            Filters: [new Filter { Field = "Name", Operator = FilterOperator.Contains, Value = "e" }],
             IncludeDeleted: true
         );
 
-        IReadOnlyList<TestProduct> results = await repo.GetAllByDynamicAsync(options);
+        IReadOnlyList<TestProduct> results = (await repo.GetAllByDynamicAsync(options)).Unwrap();
         results.Count.ShouldBe(2);
 
         DynamicQueryOptionWithSoftDelete optionsActiveOnly = new(
-            Filters:
-            [
-                new Filter
-                {
-                    Field = "Name",
-                    Operator = FilterOperator.Contains,
-                    Value = "e",
-                },
-            ],
+            Filters: [new Filter { Field = "Name", Operator = FilterOperator.Contains, Value = "e" }],
             IncludeDeleted: false
         );
 
-        IReadOnlyList<TestProduct> resultsActive = await repo.GetAllByDynamicAsync(optionsActiveOnly);
+        IReadOnlyList<TestProduct> resultsActive = (await repo.GetAllByDynamicAsync(optionsActiveOnly)).Unwrap();
         resultsActive.Count.ShouldBe(1);
         resultsActive[0].Name.ShouldBe("Active");
     }
@@ -335,24 +269,14 @@ public class DynamicQueryTests
                     Logic = FilterLogic.Or,
                     Filters =
                     [
-                        new Filter
-                        {
-                            Field = "Name",
-                            Operator = FilterOperator.Equal,
-                            Value = "A",
-                        },
-                        new Filter
-                        {
-                            Field = "Price",
-                            Operator = FilterOperator.Equal,
-                            Value = 30m,
-                        },
+                        new Filter { Field = "Name", Operator = FilterOperator.Equal, Value = "A" },
+                        new Filter { Field = "Price", Operator = FilterOperator.Equal, Value = 30m },
                     ],
                 },
             ]
         );
 
-        IReadOnlyList<TestProduct> results = await repo.GetAllByDynamicAsync(options);
+        IReadOnlyList<TestProduct> results = (await repo.GetAllByDynamicAsync(options)).Unwrap();
         results.Count.ShouldBe(2);
         results.ShouldContain(p => p.Name == "A");
         results.ShouldContain(p => p.Name == "C");
@@ -371,7 +295,7 @@ public class DynamicQueryTests
 
         DynamicQueryOption options = new(Orders: [new Order { Field = "Name", Direction = OrderDirection.Asc }]);
 
-        IReadOnlyList<TestProduct> results = await repo.GetAllByDynamicAsync(options);
+        IReadOnlyList<TestProduct> results = (await repo.GetAllByDynamicAsync(options)).Unwrap();
         results.Count.ShouldBe(3);
         results[0].Name.ShouldBe("A");
         results[1].Name.ShouldBe("B");
@@ -379,7 +303,7 @@ public class DynamicQueryTests
 
         DynamicQueryOption optionsDesc = new(Orders: [new Order { Field = "Price", Direction = OrderDirection.Desc }]);
 
-        IReadOnlyList<TestProduct> resultsDesc = await repo.GetAllByDynamicAsync(optionsDesc);
+        IReadOnlyList<TestProduct> resultsDesc = (await repo.GetAllByDynamicAsync(optionsDesc)).Unwrap();
         resultsDesc.Count.ShouldBe(3);
         resultsDesc[0].Price.ShouldBe(30m);
         resultsDesc[1].Price.ShouldBe(20m);
@@ -396,30 +320,14 @@ public class DynamicQueryTests
         await repo.SaveChangesAsync();
 
         DynamicQueryOption optionsMatch = new(
-            Filters:
-            [
-                new Filter
-                {
-                    Field = "Name",
-                    Operator = FilterOperator.Equal,
-                    Value = "Match",
-                },
-            ]
+            Filters: [new Filter { Field = "Name", Operator = FilterOperator.Equal, Value = "Match" }]
         );
         DynamicQueryOption optionsNoMatch = new(
-            Filters:
-            [
-                new Filter
-                {
-                    Field = "Name",
-                    Operator = FilterOperator.Equal,
-                    Value = "NoMatch",
-                },
-            ]
+            Filters: [new Filter { Field = "Name", Operator = FilterOperator.Equal, Value = "NoMatch" }]
         );
 
-        bool hasMatch = await repo.AnyByDynamicAsync(optionsMatch);
-        bool hasNoMatch = await repo.AnyByDynamicAsync(optionsNoMatch);
+        bool hasMatch = (await repo.AnyByDynamicAsync(optionsMatch)).Unwrap();
+        bool hasNoMatch = (await repo.AnyByDynamicAsync(optionsNoMatch)).Unwrap();
 
         hasMatch.ShouldBeTrue();
         hasNoMatch.ShouldBeFalse();
@@ -436,37 +344,19 @@ public class DynamicQueryTests
         await repo.AddAsync(new TestProduct(Guid.NewGuid()) { Name = "30", Price = 30m });
         await repo.SaveChangesAsync();
 
-        // GreaterThan
-        IReadOnlyList<TestProduct> gt20 = await repo.GetAllByDynamicAsync(
+        IReadOnlyList<TestProduct> gt20 = (await repo.GetAllByDynamicAsync(
             new DynamicQueryOption(
-                Filters:
-                [
-                    new Filter
-                    {
-                        Field = "Price",
-                        Operator = FilterOperator.GreaterThan,
-                        Value = 20m,
-                    },
-                ]
+                Filters: [new Filter { Field = "Price", Operator = FilterOperator.GreaterThan, Value = 20m }]
             )
-        );
+        )).Unwrap();
         gt20.Count.ShouldBe(1);
         gt20[0].Price.ShouldBe(30m);
 
-        // LessThanOrEqual
-        IReadOnlyList<TestProduct> lte20 = await repo.GetAllByDynamicAsync(
+        IReadOnlyList<TestProduct> lte20 = (await repo.GetAllByDynamicAsync(
             new DynamicQueryOption(
-                Filters:
-                [
-                    new Filter
-                    {
-                        Field = "Price",
-                        Operator = FilterOperator.LessThanOrEqual,
-                        Value = 20m,
-                    },
-                ]
+                Filters: [new Filter { Field = "Price", Operator = FilterOperator.LessThanOrEqual, Value = 20m }]
             )
-        );
+        )).Unwrap();
         lte20.Count.ShouldBe(2);
     }
 }

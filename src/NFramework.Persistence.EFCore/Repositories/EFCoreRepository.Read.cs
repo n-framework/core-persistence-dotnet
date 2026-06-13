@@ -4,19 +4,23 @@ using NFramework.Persistence.Abstractions.Pagination;
 using NFramework.Persistence.Abstractions.Repositories;
 using NFramework.Persistence.EFCore.Constants;
 using NFramework.Persistence.EFCore.Extensions;
+using UnionRailway;
 
 namespace NFramework.Persistence.EFCore.Repositories;
 
 public abstract partial class EFCoreRepository<TEntity, TId, TContext>
 {
     /// <inheritdoc />
-    public virtual async Task<TEntity?> GetByIdAsync(TId id, CancellationToken cancellationToken = default)
+    public virtual async Task<Rail<TEntity>> GetByIdAsync(TId id, CancellationToken cancellationToken = default)
     {
-        return await DbSet.FindAsync([id], cancellationToken).ConfigureAwait(false);
+        TEntity? entity = await DbSet.FindAsync([id], cancellationToken).ConfigureAwait(false);
+        return entity is not null
+            ? entity
+            : new UnionError.NotFound(typeof(TEntity).Name);
     }
 
     /// <inheritdoc />
-    public virtual async Task<TEntity?> GetAsync(
+    public virtual async Task<Rail<TEntity>> GetAsync(
         Expression<Func<TEntity, bool>>? predicate = null,
         CancellationToken cancellationToken = default
     )
@@ -25,53 +29,60 @@ public abstract partial class EFCoreRepository<TEntity, TId, TContext>
         if (predicate != null)
             query = query.Where(predicate);
 
-        return await query.FirstOrDefaultAsync(cancellationToken).ConfigureAwait(false);
+        TEntity? entity = await query.FirstOrDefaultAsync(cancellationToken).ConfigureAwait(false);
+        return entity is not null
+            ? entity
+            : new UnionError.NotFound(typeof(TEntity).Name);
     }
 
     /// <inheritdoc />
-    public virtual async Task<IReadOnlyList<TEntity>> GetAllAsync(
+    public virtual async Task<Rail<IReadOnlyList<TEntity>>> GetAllAsync(
         QueryOption<TEntity>? options = null,
         CancellationToken cancellationToken = default
     )
     {
-        IQueryable<TEntity> query = buildQuery(options);
-        return await ExecuteWithLimitAsync(query, cancellationToken).ConfigureAwait(false);
+        IQueryable<TEntity> query = BuildQuery(options);
+        IReadOnlyList<TEntity> result = await ExecuteWithLimitAsync(query, cancellationToken).ConfigureAwait(false);
+        return result;
     }
 
     /// <inheritdoc />
-    public virtual async Task<PaginatedList<TEntity>> GetListAsync(
+    public virtual async Task<Rail<PaginatedList<TEntity>>> GetListAsync(
         PageableQueryOption<TEntity>? options = null,
         CancellationToken cancellationToken = default
     )
     {
-        IQueryable<TEntity> query = buildQuery(options);
+        IQueryable<TEntity> query = BuildQuery(options);
         Paging paging = options?.Page ?? Paging.Default;
-        return await query.ToPaginatedListAsync(paging, cancellationToken).ConfigureAwait(false);
+        PaginatedList<TEntity> result = await query.ToPaginatedListAsync(paging, cancellationToken).ConfigureAwait(false);
+        return result;
     }
 
     /// <inheritdoc />
-    public virtual async Task<bool> AnyAsync(
+    public virtual async Task<Rail<bool>> AnyAsync(
         Expression<Func<TEntity, bool>>? predicate = null,
         CancellationToken cancellationToken = default
     )
     {
-        return predicate != null
+        bool result = predicate != null
             ? await DbSet.AnyAsync(predicate, cancellationToken).ConfigureAwait(false)
             : await DbSet.AnyAsync(cancellationToken).ConfigureAwait(false);
+        return result;
     }
 
     /// <inheritdoc />
-    public virtual async Task<int> CountAsync(
+    public virtual async Task<Rail<int>> CountAsync(
         Expression<Func<TEntity, bool>>? predicate = null,
         CancellationToken cancellationToken = default
     )
     {
-        return predicate != null
+        int result = predicate != null
             ? await DbSet.CountAsync(predicate, cancellationToken).ConfigureAwait(false)
             : await DbSet.CountAsync(cancellationToken).ConfigureAwait(false);
+        return result;
     }
 
-    private IQueryable<TEntity> buildQuery(QueryOption<TEntity>? options)
+    private IQueryable<TEntity> BuildQuery(QueryOption<TEntity>? options)
     {
         IQueryable<TEntity> query = DbSet;
 

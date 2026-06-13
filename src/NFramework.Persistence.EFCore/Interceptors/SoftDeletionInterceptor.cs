@@ -27,7 +27,9 @@ public sealed class SoftDeletionInterceptor : SaveChangesInterceptor
         DateTime now = DateTime.UtcNow;
         HashSet<object> visited = [];
         foreach (EntityEntry entry in GetEntriesToSoftDelete(eventData.Context))
+        {
             CascadeSoftDelete(eventData.Context!, entry, now, visited, 0, MaxCascadeDepth);
+        }
 
         return base.SavingChanges(eventData, result);
     }
@@ -44,8 +46,10 @@ public sealed class SoftDeletionInterceptor : SaveChangesInterceptor
         DateTime now = DateTime.UtcNow;
         HashSet<object> visited = [];
         foreach (EntityEntry entry in GetEntriesToSoftDelete(eventData.Context))
+        {
             await CascadeSoftDeleteAsync(eventData.Context!, entry, now, visited, 0, MaxCascadeDepth, cancellationToken)
                 .ConfigureAwait(false);
+        }
 
         return await base.SavingChangesAsync(eventData, result, cancellationToken).ConfigureAwait(false);
     }
@@ -136,16 +140,21 @@ public sealed class SoftDeletionInterceptor : SaveChangesInterceptor
     )
     {
         if (maxDepth is { } limit && limit > 0 && depth > limit)
+        {
             throw new InvalidOperationException(
                 $"Cascade soft-delete exceeded maximum depth of {limit}. This may indicate a circular reference or an excessively deep graph that could cause a StackOverflow."
             );
+        }
 
         if (!visited.Add(entry.Entity))
+        {
             return;
+        }
 
         MarkAsSoftDeleted(entry, now);
 
         foreach (INavigationBase navigation in GetCascadeNavigations(entry))
+        {
             if (navigation.IsCollection)
             {
                 CollectionEntry collectionEntry = entry.Collection(navigation.PropertyInfo!.Name);
@@ -165,7 +174,9 @@ public sealed class SoftDeletionInterceptor : SaveChangesInterceptor
                 }
 
                 foreach (EntityEntry childEntry in GetValidChildren(context, collectionEntry.CurrentValue))
+                {
                     CascadeSoftDelete(context, childEntry, now, visited, depth + 1, maxDepth);
+                }
             }
             else
             {
@@ -186,8 +197,11 @@ public sealed class SoftDeletionInterceptor : SaveChangesInterceptor
                 }
 
                 if (GetValidChild(context, referenceEntry.CurrentValue) is { } childEntry)
+                {
                     CascadeSoftDelete(context, childEntry, now, visited, depth + 1, maxDepth);
+                }
             }
+        }
     }
 
     /// <summary>
@@ -204,16 +218,21 @@ public sealed class SoftDeletionInterceptor : SaveChangesInterceptor
     )
     {
         if (maxDepth is { } limit && limit > 0 && depth > limit)
+        {
             throw new InvalidOperationException(
                 $"Cascade soft-delete exceeded maximum depth of {limit}. This may indicate a circular reference or an excessively deep graph that could cause a StackOverflow."
             );
+        }
 
         if (!visited.Add(entry.Entity))
+        {
             return;
+        }
 
         MarkAsSoftDeleted(entry, now);
 
         foreach (INavigationBase navigation in GetCascadeNavigations(entry))
+        {
             if (navigation.IsCollection)
             {
                 CollectionEntry collectionEntry = entry.Collection(navigation.PropertyInfo!.Name);
@@ -233,6 +252,7 @@ public sealed class SoftDeletionInterceptor : SaveChangesInterceptor
                 }
 
                 foreach (EntityEntry childEntry in GetValidChildren(context, collectionEntry.CurrentValue))
+                {
                     await CascadeSoftDeleteAsync(
                             context,
                             childEntry,
@@ -243,6 +263,7 @@ public sealed class SoftDeletionInterceptor : SaveChangesInterceptor
                             cancellationToken
                         )
                         .ConfigureAwait(false);
+                }
             }
             else
             {
@@ -263,6 +284,7 @@ public sealed class SoftDeletionInterceptor : SaveChangesInterceptor
                 }
 
                 if (GetValidChild(context, referenceEntry.CurrentValue) is { } childEntry)
+                {
                     await CascadeSoftDeleteAsync(
                             context,
                             childEntry,
@@ -273,7 +295,9 @@ public sealed class SoftDeletionInterceptor : SaveChangesInterceptor
                             cancellationToken
                         )
                         .ConfigureAwait(false);
+                }
             }
+        }
     }
 
     private static bool IsSoftDeletableEntry(EntityEntry entry)

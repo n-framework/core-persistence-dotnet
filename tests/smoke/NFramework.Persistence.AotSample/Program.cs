@@ -7,6 +7,7 @@ using NFramework.Persistence.Abstractions.Entities;
 using NFramework.Persistence.Abstractions.Repositories;
 using NFramework.Persistence.EFCore.Extensions;
 using NFramework.Persistence.EFCore.Repositories;
+using UnionRailway;
 
 namespace NFramework.Persistence.AotSample;
 
@@ -83,8 +84,8 @@ internal sealed class AotRunner
 
             // 2. Basic CRUD
             var product = new AotProduct(Guid.NewGuid()) { Name = "AOT Product", Price = 99.99m };
-            await repo.AddAsync(product);
-            await repo.SaveChangesAsync();
+            (await repo.AddAsync(product)).Unwrap();
+            (await repo.SaveChangesAsync()).Unwrap();
             Console.WriteLine($"[AOT] Product created with ID: {product.Id}");
 
             // 3. Dynamic Query (Phase 7 Verification in AOT context)
@@ -99,7 +100,7 @@ internal sealed class AotRunner
                     },
                 ]
             );
-            var results = await repo.GetAllByDynamicAsync(options);
+            var results = (await repo.GetAllByDynamicAsync(options)).Unwrap();
             Console.WriteLine($"[AOT] Dynamic query found {results.Count} items.");
 
             if (results.Any())

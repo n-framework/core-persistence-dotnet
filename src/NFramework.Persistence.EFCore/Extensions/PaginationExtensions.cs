@@ -26,10 +26,12 @@ public static class PaginationExtensions
         {
             long skipItems = (long)paging.Index * paging.Size;
             if (skipItems > int.MaxValue)
+            {
                 throw new ArgumentOutOfRangeException(
                     nameof(paging),
                     "Pagination parameters result in an overflow of the maximum skipped items."
                 );
+            }
 
             int totalCount = await source.CountAsync(cancellationToken).ConfigureAwait(false);
             if (totalCount == 0)

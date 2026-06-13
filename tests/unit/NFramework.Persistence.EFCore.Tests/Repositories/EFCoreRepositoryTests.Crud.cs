@@ -1,6 +1,7 @@
 using NFramework.Persistence.EFCore.Repositories;
 using NFramework.Persistence.EFCore.Tests.Helpers;
 using Shouldly;
+using UnionRailway;
 using Xunit;
 
 namespace NFramework.Persistence.EFCore.Tests.Repositories;
@@ -17,8 +18,8 @@ public class CrudTests
         TestProductRepository repo = new(context);
 
         TestProduct product = new(Guid.NewGuid()) { Name = "Widget", Price = 9.99m };
-        TestProduct result = await repo.AddAsync(product);
-        await repo.SaveChangesAsync();
+        TestProduct result = (await repo.AddAsync(product)).Unwrap();
+        (await repo.SaveChangesAsync()).Unwrap();
 
         result.CreatedAt.ShouldNotBe(default);
         result.UpdatedAt.ShouldBeNull();
@@ -31,29 +32,29 @@ public class CrudTests
         TestProductRepository repo = new(context);
 
         Guid id = Guid.NewGuid();
-        await repo.AddAsync(
+        (await repo.AddAsync(
             new TestProduct(Guid.NewGuid())
             {
                 Id = id,
                 Name = "Gadget",
                 Price = 19.99m,
             }
-        );
-        await repo.SaveChangesAsync();
+        )).Unwrap();
+        (await repo.SaveChangesAsync()).Unwrap();
 
-        TestProduct? found = await repo.GetByIdAsync(id);
+        TestProduct found = (await repo.GetByIdAsync(id)).Unwrap();
         found.ShouldNotBeNull();
         found.Name.ShouldBe("Gadget");
     }
 
     [Fact]
-    public async Task GetByIdAsync_ShouldReturnNullForMissing()
+    public async Task GetByIdAsync_ShouldReturnErrorForMissing()
     {
         using TestDbContext context = TestDbContext.Create();
         TestProductRepository repo = new(context);
 
-        TestProduct? found = await repo.GetByIdAsync(Guid.NewGuid());
-        found.ShouldBeNull();
+        Rail<TestProduct> result = await repo.GetByIdAsync(Guid.NewGuid());
+        result.IsSuccess(out _, out _).ShouldBeFalse();
     }
 
     [Fact]
@@ -62,14 +63,14 @@ public class CrudTests
         using TestDbContext context = TestDbContext.Create();
         TestProductRepository repo = new(context);
 
-        TestProduct product = await repo.AddAsync(new TestProduct(Guid.NewGuid()) { Name = "OldName", Price = 5.00m });
-        await repo.SaveChangesAsync();
+        TestProduct product = (await repo.AddAsync(new TestProduct(Guid.NewGuid()) { Name = "OldName", Price = 5.00m })).Unwrap();
+        (await repo.SaveChangesAsync()).Unwrap();
 
         DateTime? originalUpdatedAt = product.UpdatedAt;
 
         product.Name = "NewName";
-        TestProduct updated = await repo.UpdateAsync(product);
-        await repo.SaveChangesAsync();
+        TestProduct updated = (await repo.UpdateAsync(product)).Unwrap();
+        (await repo.SaveChangesAsync()).Unwrap();
 
         updated.UpdatedAt.ShouldNotBeNull();
         updated.UpdatedAt.Value.ShouldBeGreaterThanOrEqualTo(originalUpdatedAt ?? DateTime.MinValue);
@@ -82,15 +83,15 @@ public class CrudTests
         using TestDbContext context = TestDbContext.Create();
         TestProductRepository repo = new(context);
 
-        TestProduct product = await repo.AddAsync(
+        TestProduct product = (await repo.AddAsync(
             new TestProduct(Guid.NewGuid()) { Name = "Deletable", Price = 1.00m }
-        );
-        await repo.SaveChangesAsync();
+        )).Unwrap();
+        (await repo.SaveChangesAsync()).Unwrap();
 
-        await repo.DeleteAsync(product);
-        await repo.SaveChangesAsync();
+        (await repo.DeleteAsync(product)).Unwrap();
+        (await repo.SaveChangesAsync()).Unwrap();
 
-        TestProduct? found = await repo.GetByIdAsync(product.Id);
+        TestProduct found = (await repo.GetByIdAsync(product.Id)).Unwrap();
         found.ShouldNotBeNull();
         found.IsDeleted.ShouldBeTrue();
         found.DeletedAt.ShouldNotBeNull();
@@ -102,11 +103,11 @@ public class CrudTests
         using TestDbContext context = TestDbContext.Create();
         TestProductRepository repo = new(context);
 
-        await repo.AddAsync(new TestProduct(Guid.NewGuid()) { Name = "A", Price = 1.00m });
-        await repo.AddAsync(new TestProduct(Guid.NewGuid()) { Name = "B", Price = 2.00m });
-        await repo.SaveChangesAsync();
+        (await repo.AddAsync(new TestProduct(Guid.NewGuid()) { Name = "A", Price = 1.00m })).Unwrap();
+        (await repo.AddAsync(new TestProduct(Guid.NewGuid()) { Name = "B", Price = 2.00m })).Unwrap();
+        (await repo.SaveChangesAsync()).Unwrap();
 
-        int count = await repo.CountAsync();
+        int count = (await repo.CountAsync()).Unwrap();
         count.ShouldBe(2);
     }
 
@@ -116,13 +117,13 @@ public class CrudTests
         using TestDbContext context = TestDbContext.Create();
         TestProductRepository repo = new(context);
 
-        await repo.AddAsync(new TestProduct(Guid.NewGuid()) { Name = "Exists", Price = 1.00m });
-        await repo.SaveChangesAsync();
+        (await repo.AddAsync(new TestProduct(Guid.NewGuid()) { Name = "Exists", Price = 1.00m })).Unwrap();
+        (await repo.SaveChangesAsync()).Unwrap();
 
-        bool exists = await repo.AnyAsync(static p => p.Name == "Exists");
+        bool exists = (await repo.AnyAsync(static p => p.Name == "Exists")).Unwrap();
         exists.ShouldBeTrue();
 
-        bool notExists = await repo.AnyAsync(static p => p.Name == "Nope");
+        bool notExists = (await repo.AnyAsync(static p => p.Name == "Nope")).Unwrap();
         notExists.ShouldBeFalse();
     }
 
@@ -139,11 +140,11 @@ public class CrudTests
             new(Guid.NewGuid()) { Name = "Bulk3", Price = 3.00m },
         ];
 
-        ICollection<TestProduct> result = await repo.BulkAddAsync(products);
-        await repo.SaveChangesAsync();
+        ICollection<TestProduct> result = (await repo.BulkAddAsync(products)).Unwrap();
+        (await repo.SaveChangesAsync()).Unwrap();
         result.Count.ShouldBe(3);
 
-        int count = await repo.CountAsync();
+        int count = (await repo.CountAsync()).Unwrap();
         count.ShouldBe(3);
     }
 
@@ -153,7 +154,7 @@ public class CrudTests
         using TestDbContext context = TestDbContext.Create();
         TestProductRepository repo = new(context);
 
-        ICollection<TestProduct> result = await repo.BulkAddAsync([]);
+        ICollection<TestProduct> result = (await repo.BulkAddAsync([])).Unwrap();
         result.Count.ShouldBe(0);
     }
 
@@ -164,11 +165,11 @@ public class CrudTests
         TestProductRepository repo = new(context);
 
         TestProduct product = new(Guid.NewGuid()) { Name = "Upserted", Price = 7.00m };
-        TestProduct result = await repo.UpsertAsync(product);
-        await repo.SaveChangesAsync();
+        TestProduct result = (await repo.UpsertAsync(product)).Unwrap();
+        (await repo.SaveChangesAsync()).Unwrap();
 
         result.Name.ShouldBe("Upserted");
-        int count = await repo.CountAsync();
+        int count = (await repo.CountAsync()).Unwrap();
         count.ShouldBe(1);
     }
 
@@ -178,17 +179,17 @@ public class CrudTests
         using TestDbContext context = TestDbContext.Create();
         TestProductRepository repo = new(context);
 
-        TestProduct product = await repo.AddAsync(
+        TestProduct product = (await repo.AddAsync(
             new TestProduct(Guid.NewGuid()) { Name = "UpsertedOriginal", Price = 5.00m }
-        );
-        await repo.SaveChangesAsync();
+        )).Unwrap();
+        (await repo.SaveChangesAsync()).Unwrap();
 
         product.Name = "UpsertedUpdated";
-        TestProduct result = await repo.UpsertAsync(product);
-        await repo.SaveChangesAsync();
+        TestProduct result = (await repo.UpsertAsync(product)).Unwrap();
+        (await repo.SaveChangesAsync()).Unwrap();
 
         result.Name.ShouldBe("UpsertedUpdated");
-        int count = await repo.CountAsync();
+        int count = (await repo.CountAsync()).Unwrap();
         count.ShouldBe(1);
     }
 
@@ -204,18 +205,18 @@ public class CrudTests
             new(Guid.NewGuid()) { Name = "BulkUpd2", Price = 2.00m },
         ];
 
-        await repo.BulkAddAsync(products);
-        await repo.SaveChangesAsync();
+        (await repo.BulkAddAsync(products)).Unwrap();
+        (await repo.SaveChangesAsync()).Unwrap();
 
         products[0].Name = "BulkUpd1_Changed";
         products[1].Name = "BulkUpd2_Changed";
 
-        ICollection<TestProduct> result = await repo.BulkUpdateAsync(products);
-        await repo.SaveChangesAsync();
+        ICollection<TestProduct> result = (await repo.BulkUpdateAsync(products)).Unwrap();
+        (await repo.SaveChangesAsync()).Unwrap();
         result.Count.ShouldBe(2);
 
-        TestProduct? found = await repo.GetByIdAsync(products[0].Id);
-        found!.Name.ShouldBe("BulkUpd1_Changed");
+        TestProduct found = (await repo.GetByIdAsync(products[0].Id)).Unwrap();
+        found.Name.ShouldBe("BulkUpd1_Changed");
     }
 
     [Fact]
@@ -230,14 +231,14 @@ public class CrudTests
             new(Guid.NewGuid()) { Name = "BulkDel2", Price = 2.00m },
         ];
 
-        await repo.BulkAddAsync(products);
-        await repo.SaveChangesAsync();
+        (await repo.BulkAddAsync(products)).Unwrap();
+        (await repo.SaveChangesAsync()).Unwrap();
 
-        ICollection<TestProduct> result = await repo.BulkDeleteAsync(products);
-        await repo.SaveChangesAsync();
+        ICollection<TestProduct> result = (await repo.BulkDeleteAsync(products)).Unwrap();
+        (await repo.SaveChangesAsync()).Unwrap();
         result.Count.ShouldBe(2);
 
-        int count = await repo.CountAsync();
+        int count = (await repo.CountAsync()).Unwrap();
         count.ShouldBe(0);
     }
 
@@ -248,8 +249,8 @@ public class CrudTests
         TestCategoryRepository repo = new(context);
 
         TestCategory category = new(1) { Name = "Electronics" };
-        TestCategory result = await repo.AddAsync(category);
-        await repo.SaveChangesAsync();
+        TestCategory result = (await repo.AddAsync(category)).Unwrap();
+        (await repo.SaveChangesAsync()).Unwrap();
 
         result.CreatedAt.ShouldNotBe(default);
         result.UpdatedAt.ShouldBeNull();
@@ -261,12 +262,12 @@ public class CrudTests
         using TestDbContext context = TestDbContext.Create();
         TestProductRepository repo = new(context);
 
-        await repo.AddAsync(new TestProduct(Guid.NewGuid()) { Name = "Apple", Price = 1.00m });
-        await repo.AddAsync(new TestProduct(Guid.NewGuid()) { Name = "Banana", Price = 2.00m });
-        await repo.AddAsync(new TestProduct(Guid.NewGuid()) { Name = "Apricot", Price = 3.00m });
-        await repo.SaveChangesAsync();
+        (await repo.AddAsync(new TestProduct(Guid.NewGuid()) { Name = "Apple", Price = 1.00m })).Unwrap();
+        (await repo.AddAsync(new TestProduct(Guid.NewGuid()) { Name = "Banana", Price = 2.00m })).Unwrap();
+        (await repo.AddAsync(new TestProduct(Guid.NewGuid()) { Name = "Apricot", Price = 3.00m })).Unwrap();
+        (await repo.SaveChangesAsync()).Unwrap();
 
-        var results = await repo.GetAllAsync(new(static p => p.Name.StartsWith('A')));
+        var results = (await repo.GetAllAsync(new(static p => p.Name.StartsWith('A')))).Unwrap();
         results.Count.ShouldBe(2);
         results.ShouldContain(static p => p.Name == "Apple");
         results.ShouldContain(static p => p.Name == "Apricot");
@@ -278,11 +279,11 @@ public class CrudTests
         using TestDbContext context = TestDbContext.Create();
         TestProductRepository repo = new(context);
 
-        await repo.AddAsync(new TestProduct(Guid.NewGuid()) { Name = "Apple", Price = 1.00m });
-        await repo.AddAsync(new TestProduct(Guid.NewGuid()) { Name = "Banana", Price = 2.00m });
-        await repo.SaveChangesAsync();
+        (await repo.AddAsync(new TestProduct(Guid.NewGuid()) { Name = "Apple", Price = 1.00m })).Unwrap();
+        (await repo.AddAsync(new TestProduct(Guid.NewGuid()) { Name = "Banana", Price = 2.00m })).Unwrap();
+        (await repo.SaveChangesAsync()).Unwrap();
 
-        var result = await repo.GetAsync(static p => p.Name == "Banana");
+        var result = (await repo.GetAsync(static p => p.Name == "Banana")).Unwrap();
         result.ShouldNotBeNull();
         result.Name.ShouldBe("Banana");
     }
@@ -301,25 +302,19 @@ public class CrudTests
             Price = 1.00m,
         };
 
-        await repo.AddAsync(product);
-        await repo.SaveChangesAsync();
+        (await repo.AddAsync(product)).Unwrap();
+        (await repo.SaveChangesAsync()).Unwrap();
 
-        // 1. Fetch the entity (now it's tracked by ChangeTracker)
-        var trackedEntity = await repo.GetByIdAsync(id);
+        var trackedEntity = (await repo.GetByIdAsync(id)).Unwrap();
         trackedEntity.ShouldNotBeNull();
 
-        // 2. Modify properties
         trackedEntity.Price = 50.00m;
 
-        // 3. Update the identical tracked entity
-        // With our ReferenceEquals optimization, this should return immediately without doing SetValues
-        var result = await repo.UpdateAsync(trackedEntity);
+        var result = (await repo.UpdateAsync(trackedEntity)).Unwrap();
 
-        // 4. Save Changes
-        await repo.SaveChangesAsync();
+        (await repo.SaveChangesAsync()).Unwrap();
 
-        // 5. Verify the save went through
-        var verify = await repo.GetByIdAsync(id);
+        var verify = (await repo.GetByIdAsync(id)).Unwrap();
         verify.ShouldNotBeNull();
         verify.Price.ShouldBe(50.00m);
         ReferenceEquals(result, trackedEntity).ShouldBeTrue();
@@ -335,7 +330,7 @@ public class CrudTests
         await cts.CancelAsync();
 
         await Should.ThrowAsync<OperationCanceledException>(async () =>
-            await repo.GetAllAsync(cancellationToken: cts.Token)
+            (await repo.GetAllAsync(cancellationToken: cts.Token)).Unwrap()
         );
     }
 
@@ -343,15 +338,14 @@ public class CrudTests
     public async Task GetAllAsync_WhenExceedingLimit_ShouldThrowInvalidOperationException()
     {
         using TestDbContext context = TestDbContext.Create();
-        // Repository with limit of 2 for testing
         LimitedTestProductRepository repo = new(context);
 
-        await repo.AddAsync(new TestProduct(Guid.NewGuid()) { Name = "1", Price = 1 });
-        await repo.AddAsync(new TestProduct(Guid.NewGuid()) { Name = "2", Price = 2 });
-        await repo.AddAsync(new TestProduct(Guid.NewGuid()) { Name = "3", Price = 3 });
-        await repo.SaveChangesAsync();
+        (await repo.AddAsync(new TestProduct(Guid.NewGuid()) { Name = "1", Price = 1 })).Unwrap();
+        (await repo.AddAsync(new TestProduct(Guid.NewGuid()) { Name = "2", Price = 2 })).Unwrap();
+        (await repo.AddAsync(new TestProduct(Guid.NewGuid()) { Name = "3", Price = 3 })).Unwrap();
+        (await repo.SaveChangesAsync()).Unwrap();
 
-        await Should.ThrowAsync<InvalidOperationException>(async () => await repo.GetAllAsync());
+        await Should.ThrowAsync<InvalidOperationException>(async () => (await repo.GetAllAsync()).Unwrap());
     }
 
     [Fact]
@@ -360,11 +354,11 @@ public class CrudTests
         using TestDbContext context = TestDbContext.Create();
         LimitedTestProductRepository repo = new(context);
 
-        await repo.AddAsync(new TestProduct(Guid.NewGuid()) { Name = "1", Price = 1 });
-        await repo.AddAsync(new TestProduct(Guid.NewGuid()) { Name = "2", Price = 2 });
-        await repo.SaveChangesAsync();
+        (await repo.AddAsync(new TestProduct(Guid.NewGuid()) { Name = "1", Price = 1 })).Unwrap();
+        (await repo.AddAsync(new TestProduct(Guid.NewGuid()) { Name = "2", Price = 2 })).Unwrap();
+        (await repo.SaveChangesAsync()).Unwrap();
 
-        var results = await repo.GetAllAsync();
+        var results = (await repo.GetAllAsync()).Unwrap();
         results.Count.ShouldBe(2);
     }
 

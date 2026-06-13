@@ -1,6 +1,7 @@
 using NFramework.Persistence.Abstractions.Repositories;
 using NFramework.Persistence.EFCore.Tests.Helpers;
 using Shouldly;
+using UnionRailway;
 using Xunit;
 
 namespace NFramework.Persistence.EFCore.Tests.Repositories;
@@ -13,18 +14,18 @@ public class TrackingTests
         using TestDbContext context = TestDbContext.Create();
         TestProductRepository repo = new(context);
         Guid id = Guid.NewGuid();
-        await repo.AddAsync(
+        (await repo.AddAsync(
             new TestProduct(Guid.NewGuid())
             {
                 Id = id,
                 Name = "P1",
                 Price = 10,
             }
-        );
-        await repo.SaveChangesAsync();
+        )).Unwrap();
+        (await repo.SaveChangesAsync()).Unwrap();
         context.ChangeTracker.Clear();
 
-        var results = await repo.GetAllAsync(new QueryOption<TestProduct>(Tracking: QueryTrackingMode.NoTracking));
+        var results = (await repo.GetAllAsync(new QueryOption<TestProduct>(Tracking: QueryTrackingMode.NoTracking))).Unwrap();
 
         results.Count.ShouldBe(1);
         context.ChangeTracker.Entries<TestProduct>().ShouldBeEmpty();
@@ -36,18 +37,18 @@ public class TrackingTests
         using TestDbContext context = TestDbContext.Create();
         TestProductRepository repo = new(context);
         Guid id = Guid.NewGuid();
-        await repo.AddAsync(
+        (await repo.AddAsync(
             new TestProduct(Guid.NewGuid())
             {
                 Id = id,
                 Name = "P1",
                 Price = 10,
             }
-        );
-        await repo.SaveChangesAsync();
+        )).Unwrap();
+        (await repo.SaveChangesAsync()).Unwrap();
         context.ChangeTracker.Clear();
 
-        var results = await repo.GetAllAsync(new QueryOption<TestProduct>(Tracking: QueryTrackingMode.Tracking));
+        var results = (await repo.GetAllAsync(new QueryOption<TestProduct>(Tracking: QueryTrackingMode.Tracking))).Unwrap();
 
         results.Count.ShouldBe(1);
         context.ChangeTracker.Entries<TestProduct>().Count().ShouldBe(1);
@@ -60,20 +61,20 @@ public class TrackingTests
         using TestDbContext context = TestDbContext.Create();
         TestProductRepository repo = new(context);
         Guid id = Guid.NewGuid();
-        await repo.AddAsync(
+        (await repo.AddAsync(
             new TestProduct(Guid.NewGuid())
             {
                 Id = id,
                 Name = "P1",
                 Price = 10,
             }
-        );
-        await repo.SaveChangesAsync();
+        )).Unwrap();
+        (await repo.SaveChangesAsync()).Unwrap();
         context.ChangeTracker.Clear();
 
-        var results = await repo.GetAllAsync(
+        var results = (await repo.GetAllAsync(
             new QueryOption<TestProduct>(Tracking: QueryTrackingMode.NoTrackingWithIdentityResolution)
-        );
+        )).Unwrap();
 
         results.Count.ShouldBe(1);
         context.ChangeTracker.Entries<TestProduct>().ShouldBeEmpty();
@@ -85,18 +86,18 @@ public class TrackingTests
         using TestDbContext context = TestDbContext.Create();
         TestProductRepository repo = new(context);
         Guid id = Guid.NewGuid();
-        await repo.AddAsync(
+        (await repo.AddAsync(
             new TestProduct(Guid.NewGuid())
             {
                 Id = id,
                 Name = "P1",
                 Price = 10,
             }
-        );
-        await repo.SaveChangesAsync();
+        )).Unwrap();
+        (await repo.SaveChangesAsync()).Unwrap();
         context.ChangeTracker.Clear();
 
-        var results = await repo.GetAllByDynamicAsync(new DynamicQueryOption(Tracking: QueryTrackingMode.NoTracking));
+        var results = (await repo.GetAllByDynamicAsync(new DynamicQueryOption(Tracking: QueryTrackingMode.NoTracking))).Unwrap();
 
         results.Count.ShouldBe(1);
         context.ChangeTracker.Entries<TestProduct>().ShouldBeEmpty();
@@ -108,18 +109,18 @@ public class TrackingTests
         using TestDbContext context = TestDbContext.Create();
         TestProductRepository repo = new(context);
         Guid id = Guid.NewGuid();
-        await repo.AddAsync(
+        (await repo.AddAsync(
             new TestProduct(Guid.NewGuid())
             {
                 Id = id,
                 Name = "P1",
                 Price = 10,
             }
-        );
-        await repo.SaveChangesAsync();
+        )).Unwrap();
+        (await repo.SaveChangesAsync()).Unwrap();
         context.ChangeTracker.Clear();
 
-        var results = await repo.GetAllByDynamicAsync(new DynamicQueryOption(Tracking: QueryTrackingMode.Tracking));
+        var results = (await repo.GetAllByDynamicAsync(new DynamicQueryOption(Tracking: QueryTrackingMode.Tracking))).Unwrap();
 
         results.Count.ShouldBe(1);
         context.ChangeTracker.Entries<TestProduct>().Count().ShouldBe(1);

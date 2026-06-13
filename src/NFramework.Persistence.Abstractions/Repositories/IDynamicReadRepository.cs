@@ -1,6 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using NFramework.Persistence.Abstractions.Entities;
 using NFramework.Persistence.Abstractions.Pagination;
+using UnionRailway;
 
 namespace NFramework.Persistence.Abstractions.Repositories;
 
@@ -16,10 +17,11 @@ public interface IDynamicReadRepository<TEntity, TId>
     /// <summary>
     /// Gets a single entity matching the dynamic query options.
     /// </summary>
+    /// <returns>The entity on success; <see cref="UnionError.NotFound"/> when no match exists.</returns>
     [RequiresUnreferencedCode(
         "Dynamic query translation uses reflection-based System.Linq.Dynamic.Core which is not fully trim-safe."
     )]
-    Task<TEntity?> GetByDynamicAsync(DynamicQueryOption options, CancellationToken cancellationToken = default);
+    Task<Rail<TEntity>> GetByDynamicAsync(DynamicQueryOption options, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets all entities matching the dynamic query options.
@@ -27,7 +29,7 @@ public interface IDynamicReadRepository<TEntity, TId>
     [RequiresUnreferencedCode(
         "Dynamic query translation uses reflection-based System.Linq.Dynamic.Core which is not fully trim-safe."
     )]
-    Task<IReadOnlyList<TEntity>> GetAllByDynamicAsync(
+    Task<Rail<IReadOnlyList<TEntity>>> GetAllByDynamicAsync(
         DynamicQueryOption options,
         CancellationToken cancellationToken = default
     );
@@ -38,7 +40,7 @@ public interface IDynamicReadRepository<TEntity, TId>
     [RequiresUnreferencedCode(
         "Dynamic query translation uses reflection-based System.Linq.Dynamic.Core which is not fully trim-safe."
     )]
-    Task<PaginatedList<TEntity>> GetListByDynamicAsync(
+    Task<Rail<PaginatedList<TEntity>>> GetListByDynamicAsync(
         PageableDynamicQueryOption options,
         CancellationToken cancellationToken = default
     );
@@ -49,7 +51,7 @@ public interface IDynamicReadRepository<TEntity, TId>
     [RequiresUnreferencedCode(
         "Dynamic query translation uses reflection-based System.Linq.Dynamic.Core which is not fully trim-safe."
     )]
-    Task<bool> AnyByDynamicAsync(DynamicQueryOption options, CancellationToken cancellationToken = default);
+    Task<Rail<bool>> AnyByDynamicAsync(DynamicQueryOption options, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Counts entities matching the dynamic query options.
@@ -57,5 +59,5 @@ public interface IDynamicReadRepository<TEntity, TId>
     [RequiresUnreferencedCode(
         "Dynamic query translation uses reflection-based System.Linq.Dynamic.Core which is not fully trim-safe."
     )]
-    Task<int> CountByDynamicAsync(DynamicQueryOption options, CancellationToken cancellationToken = default);
+    Task<Rail<int>> CountByDynamicAsync(DynamicQueryOption options, CancellationToken cancellationToken = default);
 }

@@ -73,27 +73,43 @@ public class Filter
             yield return "Filter must have either a Field or Logic with nested filters.";
 
         if (!Logic.HasValue)
+        {
             if (Operator is FilterOperator.IsNull or FilterOperator.IsNotNull)
             {
                 if (Value != null)
+                {
                     yield return $"Operator {Operator} does not expect a value.";
+                }
             }
             else if (Value == null)
+            {
                 yield return $"Operator {Operator} requires a comparison value.";
+            }
             else if (Operator == FilterOperator.In && Value is not System.Collections.IEnumerable)
+            {
                 yield return $"Operator {Operator} requires an IEnumerable value.";
+            }
+        }
 
         if (Logic.HasValue && (Filters == null || Filters.Count == 0))
+        {
             yield return "Logic operator requires at least one nested filter.";
+        }
 
         if (!Logic.HasValue && Filters != null && Filters.Count > 0)
+        {
             yield return "Nested filters require a logic operator.";
+        }
 
         if (Filters != null)
+        {
             foreach (Filter filter in Filters)
             {
                 foreach (string result in filter.Validate())
+                {
                     yield return result;
+                }
             }
+        }
     }
 }

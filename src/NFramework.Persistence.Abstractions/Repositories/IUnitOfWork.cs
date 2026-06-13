@@ -1,3 +1,5 @@
+using UnionRailway;
+
 namespace NFramework.Persistence.Abstractions.Repositories;
 
 /// <summary>
@@ -8,7 +10,8 @@ public interface IUnitOfWork
     /// <summary>
     /// Saves all changes made in this unit of work.
     /// </summary>
-    Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
+    /// <returns>The number of affected rows on success; <see cref="UnionError.Conflict"/> on concurrency failure.</returns>
+    Task<Rail<int>> SaveChangesAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Begins a new transaction.
