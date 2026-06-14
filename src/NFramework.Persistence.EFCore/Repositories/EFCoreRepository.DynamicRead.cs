@@ -38,8 +38,7 @@ public abstract partial class EFCoreRepository<TEntity, TId, TContext>
     {
         ArgumentNullException.ThrowIfNull(options);
         IQueryable<TEntity> query = BuildDynamicQuery(options);
-        IReadOnlyList<TEntity> result = await ExecuteWithLimitAsync(query, cancellationToken).ConfigureAwait(false);
-        return result;
+        return await ExecuteWithLimitAsync(query, cancellationToken).ConfigureAwait(false);
     }
 
     /// <inheritdoc />
@@ -53,8 +52,7 @@ public abstract partial class EFCoreRepository<TEntity, TId, TContext>
     {
         ArgumentNullException.ThrowIfNull(options);
         IQueryable<TEntity> query = BuildDynamicQuery(options);
-        PaginatedList<TEntity> result = await query.ToPaginatedListAsync(options.Page, cancellationToken).ConfigureAwait(false);
-        return result;
+        return await query.ToPaginatedListAsync(options.Page, cancellationToken).ConfigureAwait(false);
     }
 
     /// <inheritdoc />
@@ -68,8 +66,7 @@ public abstract partial class EFCoreRepository<TEntity, TId, TContext>
     {
         ArgumentNullException.ThrowIfNull(options);
         IQueryable<TEntity> query = BuildDynamicQuery(options);
-        bool result = await query.AnyAsync(cancellationToken).ConfigureAwait(false);
-        return result;
+        return await query.AnyAsync(cancellationToken).ConfigureAwait(false);
     }
 
     /// <inheritdoc />
@@ -83,8 +80,7 @@ public abstract partial class EFCoreRepository<TEntity, TId, TContext>
     {
         ArgumentNullException.ThrowIfNull(options);
         IQueryable<TEntity> query = BuildDynamicQuery(options);
-        int result = await query.CountAsync(cancellationToken).ConfigureAwait(false);
-        return result;
+        return await query.CountAsync(cancellationToken).ConfigureAwait(false);
     }
 
     [RequiresUnreferencedCode(

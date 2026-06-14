@@ -42,8 +42,7 @@ public abstract partial class EFCoreRepository<TEntity, TId, TContext>
     )
     {
         IQueryable<TEntity> query = BuildQuery(options);
-        IReadOnlyList<TEntity> result = await ExecuteWithLimitAsync(query, cancellationToken).ConfigureAwait(false);
-        return result;
+        return await ExecuteWithLimitAsync(query, cancellationToken).ConfigureAwait(false);
     }
 
     /// <inheritdoc />
@@ -54,33 +53,26 @@ public abstract partial class EFCoreRepository<TEntity, TId, TContext>
     {
         IQueryable<TEntity> query = BuildQuery(options);
         Paging paging = options?.Page ?? Paging.Default;
-        PaginatedList<TEntity> result = await query.ToPaginatedListAsync(paging, cancellationToken).ConfigureAwait(false);
-        return result;
+        return await query.ToPaginatedListAsync(paging, cancellationToken).ConfigureAwait(false);
     }
 
     /// <inheritdoc />
     public virtual async Task<Rail<bool>> AnyAsync(
         Expression<Func<TEntity, bool>>? predicate = null,
         CancellationToken cancellationToken = default
-    )
-    {
-        bool result = predicate != null
+    ) =>
+        predicate != null
             ? await DbSet.AnyAsync(predicate, cancellationToken).ConfigureAwait(false)
             : await DbSet.AnyAsync(cancellationToken).ConfigureAwait(false);
-        return result;
-    }
 
     /// <inheritdoc />
     public virtual async Task<Rail<int>> CountAsync(
         Expression<Func<TEntity, bool>>? predicate = null,
         CancellationToken cancellationToken = default
-    )
-    {
-        int result = predicate != null
+    ) =>
+        predicate != null
             ? await DbSet.CountAsync(predicate, cancellationToken).ConfigureAwait(false)
             : await DbSet.CountAsync(cancellationToken).ConfigureAwait(false);
-        return result;
-    }
 
     private IQueryable<TEntity> BuildQuery(QueryOption<TEntity>? options)
     {

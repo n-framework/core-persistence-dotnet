@@ -4,7 +4,14 @@ namespace NFramework.Persistence.Abstractions.Exceptions;
 /// Thrown when an optimistic concurrency conflict is detected during a save operation.
 /// The entity was modified by another process between the time it was read and saved.
 /// </summary>
+/// <remarks>
+/// Deprecated: Use <c>UnionError.Conflict</c> from UnionRailway instead.
+/// Kept for backward compatibility with NFrameworkErrorMapping type-name detection.
+/// </remarks>
+#pragma warning disable S1133 // Kept for backward compatibility with NFrameworkErrorMapping type-name detection
+[Obsolete("Use UnionError.Conflict from UnionRailway instead. This type will be removed in a future major version.")]
 public sealed class ConcurrencyConflictException : Exception
+#pragma warning restore S1133
 {
     public string? EntityType { get; }
     public string? EntityId { get; }
