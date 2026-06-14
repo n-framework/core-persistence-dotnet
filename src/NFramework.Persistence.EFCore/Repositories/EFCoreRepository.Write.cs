@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using UnionRailway;
 
 namespace NFramework.Persistence.EFCore.Repositories;
@@ -142,11 +143,29 @@ public abstract partial class EFCoreRepository<TEntity, TId, TContext>
         {
             var entry = ex.Entries.Count > 0 ? ex.Entries[0] : null;
             string entityType = entry?.Metadata.Name ?? typeof(TEntity).Name;
-            string entityId = entry?.Property("Id").CurrentValue?.ToString() ?? "Unknown";
+            string entityId = GetPrimaryKeyValue(entry);
             return new UnionError.Conflict(
                 $"A concurrency conflict was detected for {entityType} with ID {entityId}. The entity was modified by another process."
             );
         }
+        catch (DbUpdateException ex)
+        {
+            return new UnionError.Validation(new Dictionary<string, string[]>
+            {
+                ["$"] = [ex.InnerException?.Message ?? ex.Message],
+            });
+        }
+    }
+
+    private static string GetPrimaryKeyValue(EntityEntry? entry)
+    {
+        if (entry is null)
+            return "Unknown";
+
+        var primaryKey = entry.Properties
+            .FirstOrDefault(p => p.Metadata.IsPrimaryKey());
+
+        return primaryKey?.CurrentValue?.ToString() ?? "Unknown";
     }
 
     /// <inheritdoc />
