@@ -32,14 +32,16 @@ public class CrudTests
         TestProductRepository repo = new(context);
 
         Guid id = Guid.NewGuid();
-        (await repo.AddAsync(
-            new TestProduct(Guid.NewGuid())
-            {
-                Id = id,
-                Name = "Gadget",
-                Price = 19.99m,
-            }
-        )).Unwrap();
+        (
+            await repo.AddAsync(
+                new TestProduct(Guid.NewGuid())
+                {
+                    Id = id,
+                    Name = "Gadget",
+                    Price = 19.99m,
+                }
+            )
+        ).Unwrap();
         (await repo.SaveChangesAsync()).Unwrap();
 
         TestProduct found = (await repo.GetByIdAsync(id)).Unwrap();
@@ -63,7 +65,9 @@ public class CrudTests
         using TestDbContext context = TestDbContext.Create();
         TestProductRepository repo = new(context);
 
-        TestProduct product = (await repo.AddAsync(new TestProduct(Guid.NewGuid()) { Name = "OldName", Price = 5.00m })).Unwrap();
+        TestProduct product = (
+            await repo.AddAsync(new TestProduct(Guid.NewGuid()) { Name = "OldName", Price = 5.00m })
+        ).Unwrap();
         (await repo.SaveChangesAsync()).Unwrap();
 
         DateTime? originalUpdatedAt = product.UpdatedAt;
@@ -83,9 +87,9 @@ public class CrudTests
         using TestDbContext context = TestDbContext.Create();
         TestProductRepository repo = new(context);
 
-        TestProduct product = (await repo.AddAsync(
-            new TestProduct(Guid.NewGuid()) { Name = "Deletable", Price = 1.00m }
-        )).Unwrap();
+        TestProduct product = (
+            await repo.AddAsync(new TestProduct(Guid.NewGuid()) { Name = "Deletable", Price = 1.00m })
+        ).Unwrap();
         (await repo.SaveChangesAsync()).Unwrap();
 
         (await repo.DeleteAsync(product)).Unwrap();
@@ -179,9 +183,9 @@ public class CrudTests
         using TestDbContext context = TestDbContext.Create();
         TestProductRepository repo = new(context);
 
-        TestProduct product = (await repo.AddAsync(
-            new TestProduct(Guid.NewGuid()) { Name = "UpsertedOriginal", Price = 5.00m }
-        )).Unwrap();
+        TestProduct product = (
+            await repo.AddAsync(new TestProduct(Guid.NewGuid()) { Name = "UpsertedOriginal", Price = 5.00m })
+        ).Unwrap();
         (await repo.SaveChangesAsync()).Unwrap();
 
         product.Name = "UpsertedUpdated";

@@ -22,9 +22,7 @@ public abstract partial class EFCoreRepository<TEntity, TId, TContext>
         ArgumentNullException.ThrowIfNull(options);
         IQueryable<TEntity> query = BuildDynamicQuery(options);
         TEntity? entity = await query.FirstOrDefaultAsync(cancellationToken).ConfigureAwait(false);
-        return entity is not null
-            ? entity
-            : new UnionError.NotFound(typeof(TEntity).Name);
+        return entity is not null ? entity : new UnionError.NotFound(typeof(TEntity).Name);
     }
 
     /// <inheritdoc />

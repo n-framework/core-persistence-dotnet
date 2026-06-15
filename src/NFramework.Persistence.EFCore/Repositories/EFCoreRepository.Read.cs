@@ -14,9 +14,7 @@ public abstract partial class EFCoreRepository<TEntity, TId, TContext>
     public virtual async Task<Rail<TEntity>> GetByIdAsync(TId id, CancellationToken cancellationToken = default)
     {
         TEntity? entity = await DbSet.FindAsync([id], cancellationToken).ConfigureAwait(false);
-        return entity is not null
-            ? entity
-            : new UnionError.NotFound(typeof(TEntity).Name);
+        return entity is not null ? entity : new UnionError.NotFound(typeof(TEntity).Name);
     }
 
     /// <inheritdoc />
@@ -30,9 +28,7 @@ public abstract partial class EFCoreRepository<TEntity, TId, TContext>
             query = query.Where(predicate);
 
         TEntity? entity = await query.FirstOrDefaultAsync(cancellationToken).ConfigureAwait(false);
-        return entity is not null
-            ? entity
-            : new UnionError.NotFound(typeof(TEntity).Name);
+        return entity is not null ? entity : new UnionError.NotFound(typeof(TEntity).Name);
     }
 
     /// <inheritdoc />

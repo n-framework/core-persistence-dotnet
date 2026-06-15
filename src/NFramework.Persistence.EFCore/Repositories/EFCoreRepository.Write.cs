@@ -150,10 +150,9 @@ public abstract partial class EFCoreRepository<TEntity, TId, TContext>
         }
         catch (DbUpdateException ex)
         {
-            return new UnionError.Validation(new Dictionary<string, string[]>
-            {
-                ["$"] = [ex.InnerException?.Message ?? ex.Message],
-            });
+            return new UnionError.Validation(
+                new Dictionary<string, string[]> { ["$"] = [ex.InnerException?.Message ?? ex.Message] }
+            );
         }
     }
 
@@ -162,8 +161,7 @@ public abstract partial class EFCoreRepository<TEntity, TId, TContext>
         if (entry is null)
             return "Unknown";
 
-        var primaryKey = entry.Properties
-            .FirstOrDefault(p => p.Metadata.IsPrimaryKey());
+        var primaryKey = entry.Properties.FirstOrDefault(p => p.Metadata.IsPrimaryKey());
 
         return primaryKey?.CurrentValue?.ToString() ?? "Unknown";
     }
