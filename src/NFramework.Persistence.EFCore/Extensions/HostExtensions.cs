@@ -35,7 +35,7 @@ public static partial class HostExtensions
                     | DynamicallyAccessedMemberTypes.NonPublicProperties
                     | DynamicallyAccessedMemberTypes.Interfaces
             )]
-        TContext
+                TContext
         >()
             where TContext : DbContext
         {

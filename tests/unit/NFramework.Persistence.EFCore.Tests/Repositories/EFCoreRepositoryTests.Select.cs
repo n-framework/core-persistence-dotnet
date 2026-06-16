@@ -359,7 +359,8 @@ public class SelectTests
 
         Rail<IReadOnlyList<string>> result = await repo.GetAllSelectAsync(static p => p.Name);
 
-        result.IsSuccess(out _, out _).ShouldBeFalse();
+        result.IsSuccess(out _, out UnionError? error).ShouldBeFalse();
+        (error is UnionError.Custom).ShouldBeTrue();
     }
 
     [Fact]

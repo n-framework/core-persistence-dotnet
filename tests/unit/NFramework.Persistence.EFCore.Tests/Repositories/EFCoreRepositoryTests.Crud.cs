@@ -351,7 +351,8 @@ public class CrudTests
 
         Rail<IReadOnlyList<TestProduct>> result = await repo.GetAllAsync();
 
-        result.IsSuccess(out _, out _).ShouldBeFalse();
+        result.IsSuccess(out _, out UnionError? error).ShouldBeFalse();
+        (error is UnionError.Custom).ShouldBeTrue();
     }
 
     [Fact]

@@ -22,7 +22,7 @@ public abstract partial class EFCoreRepository<
             | DynamicallyAccessedMemberTypes.NonPublicProperties
             | DynamicallyAccessedMemberTypes.Interfaces
     )]
-TEntity,
+        TEntity,
     TId,
     TContext
 >(TContext context)
@@ -87,8 +87,7 @@ TEntity,
             : new UnionError.Custom(
                 Code: "RESULT_SET_EXCEEDED",
                 Message: $"The result set size exceeded the configured limit of {limit} records. "
-                    + "Please use pagination or more restrictive filters.",
-                StatusCode: 400
+                    + "Please use pagination or more restrictive filters."
             );
     }
 }

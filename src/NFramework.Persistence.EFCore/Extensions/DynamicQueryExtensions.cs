@@ -31,7 +31,13 @@ public static partial class DynamicQueryExtensions
 
             IQueryable<T> result = source;
             foreach (Filter filter in filters)
+            {
+                var errors = filter.Validate().ToList();
+                if (errors.Count > 0)
+                    throw new ArgumentException($"Filter validation failed: {string.Join("; ", errors)}");
+
                 result = result.ApplySingleFilter(filter);
+            }
 
             return result;
         }
@@ -106,12 +112,6 @@ public static partial class DynamicQueryExtensions
     )
         where T : class
     {
-        var errors = filter.Validate().ToList();
-        if (errors.Count > 0)
-        {
-            throw new ArgumentException($"Filter validation failed: {string.Join("; ", errors)}");
-        }
-
         string fieldName = filter.Field;
         if (!IsValidField(source, fieldName))
             throw new ArgumentException($"Invalid or unsafe field name: '{fieldName}'");
