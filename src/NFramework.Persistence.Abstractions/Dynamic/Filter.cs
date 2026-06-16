@@ -29,7 +29,7 @@ public class Filter
         Value = value;
     }
 
-    public Filter(FilterLogic logic, ICollection<Filter> filters)
+    public Filter(FilterLogic logic, IReadOnlyCollection<Filter> filters)
     {
         Logic = logic;
         Filters = filters ?? throw new ArgumentNullException(nameof(filters));
@@ -68,7 +68,7 @@ public class Filter
     public FilterLogic? Logic { get; set; }
 
     /// <summary>Nested filters combined using <see cref="Logic"/>.</summary>
-    public ICollection<Filter>? Filters { get; init; }
+    public IReadOnlyCollection<Filter>? Filters { get; init; }
 
     /// <summary>
     /// Validates the filter state.

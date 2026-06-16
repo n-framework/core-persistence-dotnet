@@ -13,6 +13,8 @@ public abstract partial class EFCoreRepository<TEntity, TId, TContext>
     /// <inheritdoc />
     public virtual async Task<Rail<TEntity>> GetByIdAsync(TId id, CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(id);
+
         TEntity? entity = await DbSet.FindAsync([id], cancellationToken).ConfigureAwait(false);
         return entity is not null ? entity : new UnionError.NotFound(typeof(TEntity).Name);
     }

@@ -8,6 +8,11 @@ namespace NFramework.Persistence.EFCore.Repositories;
 
 /// <summary>
 /// Base EF Core repository implementing all NFramework persistence contracts.
+/// <para>
+/// Error handling convention:
+/// Throws <see cref="ArgumentNullException"/> for programming errors (null required arguments).
+/// Returns <see cref="Rail{T}"/> errors for domain/runtime errors (not found, result set exceeded).
+/// </para>
 /// </summary>
 /// <typeparam name="TEntity">Entity type inheriting from <see cref="Entity{TId}"/>.</typeparam>
 /// <typeparam name="TId">Primary key type implementing <see cref="IEquatable{TId}"/>.</typeparam>
