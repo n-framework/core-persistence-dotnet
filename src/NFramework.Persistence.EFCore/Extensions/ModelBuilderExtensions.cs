@@ -22,7 +22,7 @@ public static class ModelBuilderExtensions
                 | DynamicallyAccessedMemberTypes.NonPublicProperties
                 | DynamicallyAccessedMemberTypes.Interfaces
         )]
-            TEntity,
+    TEntity,
         TId
     >(EntityTypeBuilder<TEntity> builder)
         where TEntity : Entity<TId>
@@ -52,7 +52,7 @@ public static class ModelBuilderExtensions
                 | DynamicallyAccessedMemberTypes.NonPublicProperties
                 | DynamicallyAccessedMemberTypes.Interfaces
         )]
-            TEntity,
+    TEntity,
         TId
     >(EntityTypeBuilder<TEntity> builder)
         where TEntity : AuditableEntity<TId>
@@ -82,7 +82,7 @@ public static class ModelBuilderExtensions
                 | DynamicallyAccessedMemberTypes.NonPublicProperties
                 | DynamicallyAccessedMemberTypes.Interfaces
         )]
-            TEntity,
+    TEntity,
         TId
     >(EntityTypeBuilder<TEntity> builder)
         where TEntity : SoftDeletableEntity<TId>

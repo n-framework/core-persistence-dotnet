@@ -34,4 +34,19 @@ public class DynamicQueryOptionTests
         query.Filters.Count.ShouldBe(1);
         query.Orders.Count.ShouldBe(1);
     }
+
+    [Fact]
+    public void DynamicQueryOption_ShouldDefaultToDefaultSplitting()
+    {
+        var query = new DynamicQueryOption();
+        query.Splitting.ShouldBe(QuerySplittingMode.Default);
+    }
+
+    [Fact]
+    public void DynamicQueryOption_ShouldImplementIQuerySplitting()
+    {
+        var query = new DynamicQueryOption(Splitting: QuerySplittingMode.SingleQuery);
+        (query is IQuerySplitting).ShouldBeTrue();
+        query.Splitting.ShouldBe(QuerySplittingMode.SingleQuery);
+    }
 }

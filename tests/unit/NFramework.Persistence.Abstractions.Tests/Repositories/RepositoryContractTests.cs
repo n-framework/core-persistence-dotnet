@@ -11,12 +11,17 @@ public class RepositoryContractTests
     {
         var type = typeof(IReadRepository<TestEntity, Guid>);
         _ = new TestEntity(Guid.NewGuid()); // Instantiated to resolve CA1812
+        var methods = type.GetMethods();
 
-        type.GetMethod("GetByIdAsync").ShouldNotBeNull();
-        type.GetMethod("GetAllAsync").ShouldNotBeNull();
-        type.GetMethod("GetListAsync").ShouldNotBeNull();
-        type.GetMethod("AnyAsync").ShouldNotBeNull();
-        type.GetMethod("CountAsync").ShouldNotBeNull();
+        methods.ShouldContain(static m => m.Name == "GetByIdAsync");
+        methods.ShouldContain(static m => m.Name == "GetAsync");
+        methods.ShouldContain(static m => m.Name == "GetSelectAsync");
+        methods.ShouldContain(static m => m.Name == "GetAllAsync");
+        methods.ShouldContain(static m => m.Name == "GetAllSelectAsync");
+        methods.ShouldContain(static m => m.Name == "GetListAsync");
+        methods.ShouldContain(static m => m.Name == "GetListSelectAsync");
+        methods.ShouldContain(static m => m.Name == "AnyAsync");
+        methods.ShouldContain(static m => m.Name == "CountAsync");
     }
 
     [Fact]

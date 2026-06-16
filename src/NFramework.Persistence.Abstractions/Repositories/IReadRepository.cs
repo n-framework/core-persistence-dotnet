@@ -28,6 +28,18 @@ public interface IReadRepository<TEntity, TId>
     );
 
     /// <summary>
+    /// Gets a projected result from a single entity matching the predicate.
+    /// For value-type projections, wrap the selector in a nullable type (e.g. <c>p => (decimal?)p.Price</c>).
+    /// </summary>
+    /// <returns>The projected result on success; <see cref="UnionError.NotFound"/> when no match exists.</returns>
+    Task<Rail<TResult>> GetSelectAsync<TResult>(
+        Expression<Func<TEntity, TResult>> selector,
+        Expression<Func<TEntity, bool>>? predicate = null,
+        CancellationToken cancellationToken = default
+    )
+        where TResult : class;
+
+    /// <summary>
     /// Retrieves all entities matching the query options.
     /// </summary>
     /// <returns>A read-only list of entities (may be empty).</returns>
@@ -37,10 +49,30 @@ public interface IReadRepository<TEntity, TId>
     );
 
     /// <summary>
+    /// Retrieves all projected results matching the query options.
+    /// </summary>
+    /// <returns>A read-only list of projected results (may be empty).</returns>
+    Task<Rail<IReadOnlyList<TResult>>> GetAllSelectAsync<TResult>(
+        Expression<Func<TEntity, TResult>> selector,
+        QueryOption<TEntity>? options = null,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
     /// Retrieves a paginated list of entities.
     /// </summary>
     /// <returns>A paginated list of entities.</returns>
     Task<Rail<PaginatedList<TEntity>>> GetListAsync(
+        PageableQueryOption<TEntity>? options = null,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
+    /// Retrieves a paginated list of projected results.
+    /// </summary>
+    /// <returns>A paginated list of projected results.</returns>
+    Task<Rail<PaginatedList<TResult>>> GetListSelectAsync<TResult>(
+        Expression<Func<TEntity, TResult>> selector,
         PageableQueryOption<TEntity>? options = null,
         CancellationToken cancellationToken = default
     );

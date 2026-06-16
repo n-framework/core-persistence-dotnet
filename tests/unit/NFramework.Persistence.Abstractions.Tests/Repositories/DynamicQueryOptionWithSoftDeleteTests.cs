@@ -20,4 +20,16 @@ public class DynamicQueryOptionWithSoftDeleteTests
         var options = new DynamicQueryOptionWithSoftDelete { IncludeDeleted = true };
         options.IncludeDeleted.ShouldBeTrue();
     }
+
+    [Fact]
+    public void ShouldPassSplittingThroughToBase()
+    {
+        var options = new DynamicQueryOptionWithSoftDelete(
+            IncludeDeleted: true,
+            Splitting: QuerySplittingMode.SplitQuery
+        );
+
+        options.Splitting.ShouldBe(QuerySplittingMode.SplitQuery);
+        options.IncludeDeleted.ShouldBeTrue();
+    }
 }

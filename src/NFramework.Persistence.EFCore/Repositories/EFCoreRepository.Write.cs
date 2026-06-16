@@ -24,12 +24,12 @@ public abstract partial class EFCoreRepository<TEntity, TId, TContext>
             return new UnionError.NotFound(typeof(TEntity).Name);
 
         if (!ReferenceEquals(existing, entity))
-            ApplyConcurrencyValues(existing, entity);
+            applyConcurrencyValues(existing, entity);
 
         return existing;
     }
 
-    private void ApplyConcurrencyValues(TEntity existing, TEntity callerEntity)
+    private void applyConcurrencyValues(TEntity existing, TEntity callerEntity)
     {
         byte[] callerRowVersion = callerEntity.RowVersion;
         Context.Entry(existing).CurrentValues.SetValues(callerEntity);
@@ -46,7 +46,7 @@ public abstract partial class EFCoreRepository<TEntity, TId, TContext>
             return await AddAsync(entity, cancellationToken).ConfigureAwait(false);
 
         if (!ReferenceEquals(existing, entity))
-            ApplyConcurrencyValues(existing, entity);
+            applyConcurrencyValues(existing, entity);
 
         return existing;
     }

@@ -22,4 +22,26 @@ public class QueryOptionTests
         options.Predicate.ShouldBeNull();
         options.OrderBy.ShouldBeNull();
     }
+
+    [Fact]
+    public void QueryOption_ShouldDefaultToDefaultTracking()
+    {
+        var options = new QueryOption<TestEntity>();
+        options.Tracking.ShouldBe(QueryTrackingMode.Default);
+    }
+
+    [Fact]
+    public void QueryOption_ShouldDefaultToDefaultSplitting()
+    {
+        var options = new QueryOption<TestEntity>();
+        options.Splitting.ShouldBe(QuerySplittingMode.Default);
+    }
+
+    [Fact]
+    public void QueryOption_ShouldImplementIQuerySplitting()
+    {
+        var options = new QueryOption<TestEntity>(Splitting: QuerySplittingMode.SplitQuery);
+        (options is IQuerySplitting).ShouldBeTrue();
+        options.Splitting.ShouldBe(QuerySplittingMode.SplitQuery);
+    }
 }

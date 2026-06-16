@@ -8,5 +8,6 @@ namespace NFramework.Persistence.Abstractions.Repositories;
 public record DynamicQueryOption(
     IReadOnlyCollection<Filter>? Filters = null,
     IReadOnlyCollection<Order>? Orders = null,
-    QueryTrackingMode Tracking = QueryTrackingMode.Default
-) : IDynamicFilterableQuery, IDynamicOrderableQuery, IQueryTracking;
+    QueryTrackingMode Tracking = QueryTrackingMode.Default,
+    QuerySplittingMode Splitting = QuerySplittingMode.Default
+) : IDynamicFilterableQuery, IDynamicOrderableQuery, IQueryTracking, IQuerySplitting;

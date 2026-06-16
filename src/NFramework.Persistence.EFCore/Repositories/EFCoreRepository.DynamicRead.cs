@@ -20,7 +20,7 @@ public abstract partial class EFCoreRepository<TEntity, TId, TContext>
     )
     {
         ArgumentNullException.ThrowIfNull(options);
-        IQueryable<TEntity> query = BuildDynamicQuery(options);
+        IQueryable<TEntity> query = buildDynamicQuery(options);
         TEntity? entity = await query.FirstOrDefaultAsync(cancellationToken).ConfigureAwait(false);
         return entity is not null ? entity : new UnionError.NotFound(typeof(TEntity).Name);
     }
@@ -35,7 +35,7 @@ public abstract partial class EFCoreRepository<TEntity, TId, TContext>
     )
     {
         ArgumentNullException.ThrowIfNull(options);
-        IQueryable<TEntity> query = BuildDynamicQuery(options);
+        IQueryable<TEntity> query = buildDynamicQuery(options);
         return await ExecuteWithLimitAsync(query, cancellationToken).ConfigureAwait(false);
     }
 
@@ -49,7 +49,7 @@ public abstract partial class EFCoreRepository<TEntity, TId, TContext>
     )
     {
         ArgumentNullException.ThrowIfNull(options);
-        IQueryable<TEntity> query = BuildDynamicQuery(options);
+        IQueryable<TEntity> query = buildDynamicQuery(options);
         return await query.ToPaginatedListAsync(options.Page, cancellationToken).ConfigureAwait(false);
     }
 
@@ -63,7 +63,7 @@ public abstract partial class EFCoreRepository<TEntity, TId, TContext>
     )
     {
         ArgumentNullException.ThrowIfNull(options);
-        IQueryable<TEntity> query = BuildDynamicQuery(options);
+        IQueryable<TEntity> query = buildDynamicQuery(options);
         return await query.AnyAsync(cancellationToken).ConfigureAwait(false);
     }
 
@@ -77,14 +77,14 @@ public abstract partial class EFCoreRepository<TEntity, TId, TContext>
     )
     {
         ArgumentNullException.ThrowIfNull(options);
-        IQueryable<TEntity> query = BuildDynamicQuery(options);
+        IQueryable<TEntity> query = buildDynamicQuery(options);
         return await query.CountAsync(cancellationToken).ConfigureAwait(false);
     }
 
     [RequiresUnreferencedCode(
         "Dynamic query translation uses reflection-based System.Linq.Dynamic.Core which is not fully trim-safe."
     )]
-    private IQueryable<TEntity> BuildDynamicQuery(DynamicQueryOption options)
+    private IQueryable<TEntity> buildDynamicQuery(DynamicQueryOption options)
     {
         IQueryable<TEntity> query = DbSet;
 
@@ -92,6 +92,7 @@ public abstract partial class EFCoreRepository<TEntity, TId, TContext>
             query = query.IgnoreQueryFilters(QueryFilters.SoftDeletionArray);
 
         query = query.ApplyTracking(options);
+        query = query.ApplySplitting(options);
         query = query.ApplyFilters(options.Filters);
         query = query.ApplyOrders(options.Orders);
         return query;

@@ -21,7 +21,7 @@ public abstract partial class EFCoreRepository<
             | DynamicallyAccessedMemberTypes.NonPublicProperties
             | DynamicallyAccessedMemberTypes.Interfaces
     )]
-        TEntity,
+TEntity,
     TId,
     TContext
 >(TContext context)
@@ -80,6 +80,28 @@ public abstract partial class EFCoreRepository<
             return await query.ToListAsync(cancellationToken).ConfigureAwait(false);
 
         // We take limit + 1 to check if there are more records than allowed
+        var results = await query.Take(limit + 1).ToListAsync(cancellationToken).ConfigureAwait(false);
+
+        return results.Count <= limit
+            ? results
+            : throw new InvalidOperationException(
+                $"The result set size exceeded the configured limit of {limit} records. "
+                    + "Please use pagination or more restrictive filters."
+            );
+    }
+
+    /// <summary>
+    /// Enforces the <see cref="MaxResultSetSize"/> limit on a projected query.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown when the query results exceed the limit.</exception>
+    protected async Task<IReadOnlyList<T>> ExecuteWithLimitAsync<T>(
+        IQueryable<T> query,
+        CancellationToken cancellationToken
+    )
+    {
+        if (MaxResultSetSize is not { } limit || limit <= 0)
+            return await query.ToListAsync(cancellationToken).ConfigureAwait(false);
+
         var results = await query.Take(limit + 1).ToListAsync(cancellationToken).ConfigureAwait(false);
 
         return results.Count <= limit

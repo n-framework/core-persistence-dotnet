@@ -29,4 +29,16 @@ public class QueryOptionWithSoftDeleteTests
         var options = new QueryOptionWithSoftDelete<TestEntity> { IncludeDeleted = true };
         options.IncludeDeleted.ShouldBeTrue();
     }
+
+    [Fact]
+    public void ShouldPassSplittingThroughToBase()
+    {
+        var options = new QueryOptionWithSoftDelete<TestEntity>(
+            IncludeDeleted: true,
+            Splitting: QuerySplittingMode.SplitQuery
+        );
+
+        options.Splitting.ShouldBe(QuerySplittingMode.SplitQuery);
+        options.IncludeDeleted.ShouldBeTrue();
+    }
 }

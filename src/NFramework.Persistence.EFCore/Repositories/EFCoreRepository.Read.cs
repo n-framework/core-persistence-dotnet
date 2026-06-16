@@ -37,7 +37,7 @@ public abstract partial class EFCoreRepository<TEntity, TId, TContext>
         CancellationToken cancellationToken = default
     )
     {
-        IQueryable<TEntity> query = BuildQuery(options);
+        IQueryable<TEntity> query = buildQuery(options);
         return await ExecuteWithLimitAsync(query, cancellationToken).ConfigureAwait(false);
     }
 
@@ -47,7 +47,7 @@ public abstract partial class EFCoreRepository<TEntity, TId, TContext>
         CancellationToken cancellationToken = default
     )
     {
-        IQueryable<TEntity> query = BuildQuery(options);
+        IQueryable<TEntity> query = buildQuery(options);
         Paging paging = options?.Page ?? Paging.Default;
         return await query.ToPaginatedListAsync(paging, cancellationToken).ConfigureAwait(false);
     }
@@ -70,7 +70,7 @@ public abstract partial class EFCoreRepository<TEntity, TId, TContext>
             ? await DbSet.CountAsync(predicate, cancellationToken).ConfigureAwait(false)
             : await DbSet.CountAsync(cancellationToken).ConfigureAwait(false);
 
-    private IQueryable<TEntity> BuildQuery(QueryOption<TEntity>? options)
+    private IQueryable<TEntity> buildQuery(QueryOption<TEntity>? options)
     {
         IQueryable<TEntity> query = DbSet;
 
@@ -78,6 +78,7 @@ public abstract partial class EFCoreRepository<TEntity, TId, TContext>
             query = query.IgnoreQueryFilters(QueryFilters.SoftDeletionArray);
 
         query = query.ApplyTracking(options);
+        query = query.ApplySplitting(options);
 
         if (options?.Predicate != null)
             query = query.Where(options.Predicate);

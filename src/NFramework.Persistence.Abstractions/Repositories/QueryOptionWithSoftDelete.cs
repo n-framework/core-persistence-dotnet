@@ -9,5 +9,6 @@ public record QueryOptionWithSoftDelete<TEntity>(
     Expression<Func<TEntity, bool>>? Predicate = null,
     Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>>? OrderBy = null,
     bool IncludeDeleted = false,
-    QueryTrackingMode Tracking = QueryTrackingMode.Default
-) : QueryOption<TEntity>(Predicate, OrderBy, Tracking), IQueryOptionWithSoftDelete;
+    QueryTrackingMode Tracking = QueryTrackingMode.Default,
+    QuerySplittingMode Splitting = QuerySplittingMode.Default
+) : QueryOption<TEntity>(Predicate, OrderBy, Tracking, Splitting), IQueryOptionWithSoftDelete;
