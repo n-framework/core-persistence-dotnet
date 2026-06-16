@@ -11,6 +11,12 @@ namespace NFramework.Persistence.Abstractions.Dynamic;
 )]
 public class Filter
 {
+    /// <summary>
+    /// Maximum allowed nesting depth for filter trees.
+    /// Prevents StackOverflow from deeply nested structures.
+    /// </summary>
+    public const int MaxDepth = 10;
+
     public Filter() { }
 
     public Filter(string field, FilterOperator @operator, object? value = null)
@@ -67,8 +73,16 @@ public class Filter
     /// <summary>
     /// Validates the filter state.
     /// </summary>
-    public IEnumerable<string> Validate()
+    public IEnumerable<string> Validate() => validateRecursive(0);
+
+    private IEnumerable<string> validateRecursive(int depth)
     {
+        if (depth > MaxDepth)
+        {
+            yield return $"Filter nesting depth exceeds the maximum allowed depth of {MaxDepth}.";
+            yield break;
+        }
+
         if (string.IsNullOrWhiteSpace(Field) && !Logic.HasValue)
             yield return "Filter must have either a Field or Logic with nested filters.";
 
@@ -105,7 +119,7 @@ public class Filter
         {
             foreach (Filter filter in Filters)
             {
-                foreach (string result in filter.Validate())
+                foreach (string result in filter.validateRecursive(depth + 1))
                 {
                     yield return result;
                 }

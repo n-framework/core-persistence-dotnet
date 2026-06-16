@@ -347,7 +347,7 @@ public class SelectTests
     }
 
     [Fact]
-    public async Task GetAllSelectAsync_WhenExceedingLimit_ShouldThrow()
+    public async Task GetAllSelectAsync_WhenExceedingLimit_ShouldReturnError()
     {
         using TestDbContext context = TestDbContext.Create();
         LimitedSelectTestRepository repo = new(context);
@@ -357,9 +357,9 @@ public class SelectTests
         (await repo.AddAsync(new TestProduct(Guid.NewGuid()) { Name = "3", Price = 3 })).Unwrap();
         (await repo.SaveChangesAsync()).Unwrap();
 
-        await Should.ThrowAsync<InvalidOperationException>(async () =>
-            (await repo.GetAllSelectAsync(static p => p.Name)).Unwrap()
-        );
+        Rail<IReadOnlyList<string>> result = await repo.GetAllSelectAsync(static p => p.Name);
+
+        result.IsSuccess(out _, out _).ShouldBeFalse();
     }
 
     [Fact]

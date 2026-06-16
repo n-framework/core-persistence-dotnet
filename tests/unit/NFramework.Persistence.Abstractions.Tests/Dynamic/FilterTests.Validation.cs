@@ -23,4 +23,43 @@ public partial class FilterTests
         };
         filter.Validate().Any().ShouldBeTrue();
     }
+
+    [Fact]
+    public void Filter_NestingExceedsMaxDepth_ShouldFail()
+    {
+        Filter root = CreateNestedFilter(Filter.MaxDepth + 1);
+
+        var errors = root.Validate().ToList();
+
+        errors.ShouldNotBeEmpty();
+        errors.ShouldContain(err => err.Contains("nesting depth exceeds"));
+    }
+
+    [Fact]
+    public void Filter_NestingAtMaxDepth_ShouldSucceed()
+    {
+        Filter root = CreateNestedFilter(Filter.MaxDepth);
+
+        var errors = root.Validate().ToList();
+
+        errors.ShouldBeEmpty();
+    }
+
+    private static Filter CreateNestedFilter(int depth)
+    {
+        Filter leaf = new()
+        {
+            Field = "Name",
+            Operator = FilterOperator.Equal,
+            Value = "test",
+        };
+
+        Filter current = leaf;
+        for (int i = 0; i < depth; i++)
+        {
+            current = new Filter(FilterLogic.And, [current]);
+        }
+
+        return current;
+    }
 }

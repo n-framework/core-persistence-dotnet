@@ -339,7 +339,7 @@ public class CrudTests
     }
 
     [Fact]
-    public async Task GetAllAsync_WhenExceedingLimit_ShouldThrowInvalidOperationException()
+    public async Task GetAllAsync_WhenExceedingLimit_ShouldReturnError()
     {
         using TestDbContext context = TestDbContext.Create();
         LimitedTestProductRepository repo = new(context);
@@ -349,7 +349,9 @@ public class CrudTests
         (await repo.AddAsync(new TestProduct(Guid.NewGuid()) { Name = "3", Price = 3 })).Unwrap();
         (await repo.SaveChangesAsync()).Unwrap();
 
-        await Should.ThrowAsync<InvalidOperationException>(async () => (await repo.GetAllAsync()).Unwrap());
+        Rail<IReadOnlyList<TestProduct>> result = await repo.GetAllAsync();
+
+        result.IsSuccess(out _, out _).ShouldBeFalse();
     }
 
     [Fact]

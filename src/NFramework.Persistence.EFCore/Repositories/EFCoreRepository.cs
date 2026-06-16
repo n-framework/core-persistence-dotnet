@@ -2,6 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
 using NFramework.Persistence.Abstractions.Entities;
 using NFramework.Persistence.Abstractions.Repositories;
+using UnionRailway;
 
 namespace NFramework.Persistence.EFCore.Repositories;
 
@@ -71,8 +72,7 @@ TEntity,
     /// Enforces the <see cref="MaxResultSetSize"/> limit on a query.
     /// Fetches <c>limit + 1</c> rows to detect overflow without a separate COUNT round-trip.
     /// </summary>
-    /// <exception cref="InvalidOperationException">Thrown when the query results exceed the limit.</exception>
-    protected async Task<IReadOnlyList<T>> ExecuteWithLimitAsync<T>(
+    protected async Task<Rail<IReadOnlyList<T>>> ExecuteWithLimitAsync<T>(
         IQueryable<T> query,
         CancellationToken cancellationToken
     )
@@ -84,9 +84,11 @@ TEntity,
 
         return results.Count <= limit
             ? results
-            : throw new InvalidOperationException(
-                $"The result set size exceeded the configured limit of {limit} records. "
-                    + "Please use pagination or more restrictive filters."
+            : new UnionError.Custom(
+                Code: "RESULT_SET_EXCEEDED",
+                Message: $"The result set size exceeded the configured limit of {limit} records. "
+                    + "Please use pagination or more restrictive filters.",
+                StatusCode: 400
             );
     }
 }
