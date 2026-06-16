@@ -28,13 +28,13 @@ public interface IReadRepository<TEntity, TId>
     );
 
     /// <summary>
-    /// Gets a projected result from a single entity matching the predicate.
-    /// For value-type projections, wrap the selector in a nullable type (e.g. <c>p => (decimal?)p.Price</c>).
+    /// Gets a projected result from a single entity matching the query options.
     /// </summary>
+    /// <typeparam name="TResult">Projection result type. Must be a reference type or nullable wrapper for value types.</typeparam>
     /// <returns>The projected result on success; <see cref="UnionError.NotFound"/> when no match exists.</returns>
     Task<Rail<TResult>> GetSelectAsync<TResult>(
         Expression<Func<TEntity, TResult>> selector,
-        Expression<Func<TEntity, bool>>? predicate = null,
+        QueryOption<TEntity>? options = null,
         CancellationToken cancellationToken = default
     )
         where TResult : class;

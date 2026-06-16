@@ -69,29 +69,7 @@ TEntity,
 
     /// <summary>
     /// Enforces the <see cref="MaxResultSetSize"/> limit on a query.
-    /// </summary>
-    /// <exception cref="InvalidOperationException">Thrown when the query results exceed the limit.</exception>
-    protected async Task<IReadOnlyList<TEntity>> ExecuteWithLimitAsync(
-        IQueryable<TEntity> query,
-        CancellationToken cancellationToken
-    )
-    {
-        if (MaxResultSetSize is not { } limit || limit <= 0)
-            return await query.ToListAsync(cancellationToken).ConfigureAwait(false);
-
-        // We take limit + 1 to check if there are more records than allowed
-        var results = await query.Take(limit + 1).ToListAsync(cancellationToken).ConfigureAwait(false);
-
-        return results.Count <= limit
-            ? results
-            : throw new InvalidOperationException(
-                $"The result set size exceeded the configured limit of {limit} records. "
-                    + "Please use pagination or more restrictive filters."
-            );
-    }
-
-    /// <summary>
-    /// Enforces the <see cref="MaxResultSetSize"/> limit on a projected query.
+    /// Fetches <c>limit + 1</c> rows to detect overflow without a separate COUNT round-trip.
     /// </summary>
     /// <exception cref="InvalidOperationException">Thrown when the query results exceed the limit.</exception>
     protected async Task<IReadOnlyList<T>> ExecuteWithLimitAsync<T>(

@@ -51,14 +51,12 @@ internal interface IAotProductRepository
     : IReadRepository<AotProduct, Guid>,
         IWriteRepository<AotProduct, Guid>,
         IDynamicReadRepository<AotProduct, Guid>,
-        IUnitOfWork
-{ }
+        IUnitOfWork { }
 
 [SuppressMessage("Performance", "CA1812: Avoid uninstantiated internal classes", Justification = "Instantiated by DI.")]
 internal sealed class AotProductRepository(AotDbContext context)
     : EFCoreRepository<AotProduct, Guid, AotDbContext>(context),
-        IAotProductRepository
-{ }
+        IAotProductRepository { }
 
 internal sealed class AotRunner
 {

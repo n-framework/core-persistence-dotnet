@@ -12,15 +12,14 @@ public abstract partial class EFCoreRepository<TEntity, TId, TContext>
     /// <inheritdoc />
     public virtual async Task<Rail<TResult>> GetSelectAsync<TResult>(
         Expression<Func<TEntity, TResult>> selector,
-        Expression<Func<TEntity, bool>>? predicate = null,
+        QueryOption<TEntity>? options = null,
         CancellationToken cancellationToken = default
     )
         where TResult : class
     {
-        IQueryable<TEntity> query = DbSet;
-        if (predicate != null)
-            query = query.Where(predicate);
+        ArgumentNullException.ThrowIfNull(selector);
 
+        IQueryable<TEntity> query = buildQuery(options);
         TResult? result = await query.Select(selector).FirstOrDefaultAsync(cancellationToken).ConfigureAwait(false);
         return result is not null ? result : new UnionError.NotFound(typeof(TEntity).Name);
     }
@@ -32,6 +31,8 @@ public abstract partial class EFCoreRepository<TEntity, TId, TContext>
         CancellationToken cancellationToken = default
     )
     {
+        ArgumentNullException.ThrowIfNull(selector);
+
         IQueryable<TEntity> query = buildQuery(options);
         IQueryable<TResult> projected = query.Select(selector);
         return await ExecuteWithLimitAsync(projected, cancellationToken).ConfigureAwait(false);
@@ -44,6 +45,8 @@ public abstract partial class EFCoreRepository<TEntity, TId, TContext>
         CancellationToken cancellationToken = default
     )
     {
+        ArgumentNullException.ThrowIfNull(selector);
+
         IQueryable<TEntity> query = buildQuery(options);
         IQueryable<TResult> projected = query.Select(selector);
         Paging paging = options?.Page ?? Paging.Default;

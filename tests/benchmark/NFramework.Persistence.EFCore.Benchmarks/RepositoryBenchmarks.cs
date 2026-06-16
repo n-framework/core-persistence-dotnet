@@ -37,8 +37,7 @@ internal sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbC
 }
 
 internal sealed class ProductRepository(AppDbContext context)
-    : EFCoreRepository<Product, Guid, AppDbContext>(context)
-{ }
+    : EFCoreRepository<Product, Guid, AppDbContext>(context) { }
 
 [MemoryDiagnoser]
 [SuppressMessage(

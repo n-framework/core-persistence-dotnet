@@ -21,7 +21,12 @@ public class SelectTests
         (await repo.AddAsync(new TestProduct(Guid.NewGuid()) { Name = "Widget", Price = 9.99m })).Unwrap();
         (await repo.SaveChangesAsync()).Unwrap();
 
-        string name = (await repo.GetSelectAsync(static p => p.Name, static p => p.Name == "Widget")).Unwrap();
+        string name = (
+            await repo.GetSelectAsync(
+                static p => p.Name,
+                new QueryOption<TestProduct>(Predicate: static p => p.Name == "Widget")
+            )
+        ).Unwrap();
 
         name.ShouldBe("Widget");
     }
@@ -32,7 +37,10 @@ public class SelectTests
         using TestDbContext context = TestDbContext.Create();
         TestProductRepository repo = new(context);
 
-        Rail<string> result = await repo.GetSelectAsync(static p => p.Name, static p => p.Name == "NonExistent");
+        Rail<string> result = await repo.GetSelectAsync(
+            static p => p.Name,
+            new QueryOption<TestProduct>(Predicate: static p => p.Name == "NonExistent")
+        );
 
         result.IsSuccess(out _, out _).ShouldBeFalse();
     }
@@ -47,7 +55,10 @@ public class SelectTests
         (await repo.SaveChangesAsync()).Unwrap();
 
         var projected = (
-            await repo.GetSelectAsync(static p => new { p.Name, p.Price }, static p => p.Name == "Gadget")
+            await repo.GetSelectAsync(
+                static p => new { p.Name, p.Price },
+                new QueryOption<TestProduct>(Predicate: static p => p.Name == "Gadget")
+            )
         ).Unwrap();
 
         projected.Name.ShouldBe("Gadget");
