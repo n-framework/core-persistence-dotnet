@@ -19,13 +19,10 @@ public interface IReadRepository<TEntity, TId>
     Task<Rail<TEntity>> GetByIdAsync(TId id, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Gets an entity using filter expression.
+    /// Gets a single entity matching the query options.
     /// </summary>
     /// <returns>The entity on success; <see cref="UnionError.NotFound"/> when no match exists.</returns>
-    Task<Rail<TEntity>> GetAsync(
-        Expression<Func<TEntity, bool>>? predicate = null,
-        CancellationToken cancellationToken = default
-    );
+    Task<Rail<TEntity>> GetAsync(QueryOption<TEntity>? options = null, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets a projected result from a single entity matching the query options.

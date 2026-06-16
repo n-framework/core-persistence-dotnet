@@ -19,14 +19,11 @@ public abstract partial class EFCoreRepository<TEntity, TId, TContext>
 
     /// <inheritdoc />
     public virtual async Task<Rail<TEntity>> GetAsync(
-        Expression<Func<TEntity, bool>>? predicate = null,
+        QueryOption<TEntity>? options = null,
         CancellationToken cancellationToken = default
     )
     {
-        IQueryable<TEntity> query = DbSet;
-        if (predicate != null)
-            query = query.Where(predicate);
-
+        IQueryable<TEntity> query = buildQuery(options);
         TEntity? entity = await query.FirstOrDefaultAsync(cancellationToken).ConfigureAwait(false);
         return entity is not null ? entity : new UnionError.NotFound(typeof(TEntity).Name);
     }
