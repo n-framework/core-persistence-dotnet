@@ -33,7 +33,7 @@ public class ConcurrencyConflictTests
         Rail<int> saveResult = await repo.SaveChangesAsync();
 
         saveResult.IsSuccess(out _, out UnionError? error).ShouldBeFalse();
-        error!.Value.TryGet(out UnionError.Conflict _).ShouldBeTrue();
+        error!.Value.TryGet(out UnionError.Conflict? _).ShouldBeTrue();
     }
 
     [Fact]
@@ -67,7 +67,7 @@ public class ConcurrencyConflictTests
         Rail<int> saveResult = await repo.SaveChangesAsync();
 
         saveResult.IsSuccess(out _, out UnionError? error).ShouldBeFalse();
-        error!.Value.TryGet(out UnionError.Conflict _).ShouldBeTrue();
+        error!.Value.TryGet(out UnionError.Conflict? _).ShouldBeTrue();
     }
 
     [Fact]
@@ -104,7 +104,7 @@ public class ConcurrencyConflictTests
         Rail<int> saveResult = await repo.SaveChangesAsync();
 
         saveResult.IsSuccess(out _, out UnionError? error).ShouldBeFalse();
-        error!.Value.TryGet(out UnionError.Conflict _).ShouldBeTrue();
+        error!.Value.TryGet(out UnionError.Conflict? _).ShouldBeTrue();
     }
 
     [Fact]
@@ -131,7 +131,7 @@ public class ConcurrencyConflictTests
 
         Rail<ICollection<TestProduct>> result = await repo.BulkUpdateAsync(products);
         result.IsSuccess(out _, out UnionError? error).ShouldBeFalse();
-        error!.Value.TryGet(out UnionError.Conflict _).ShouldBeTrue();
+        error!.Value.TryGet(out UnionError.Conflict? _).ShouldBeTrue();
     }
 
     [Fact]
@@ -155,6 +155,6 @@ public class ConcurrencyConflictTests
 
         Rail<ICollection<TestProduct>> result = await repo.BulkDeleteAsync(products);
         result.IsSuccess(out _, out UnionError? error).ShouldBeFalse();
-        error!.Value.TryGet(out UnionError.Conflict _).ShouldBeTrue();
+        error!.Value.TryGet(out UnionError.Conflict? _).ShouldBeTrue();
     }
 }
